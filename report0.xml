@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<report>
+    <name>Mi primer informe chispas</name>
+    <configuration>
+        <paper>
+            <size>A4</size>
+            <margin>
+                <left>1.11</left>
+                <right>2.22</right>
+                <top>3.33</top>
+                <bottom>4.44</bottom>
+            </margin>
+            <orientation>portrait</orientation>
+        </paper>
+    </configuration>
+    <report_title>
+        <id>title_1</id>
+        <body></body>
+    </report_title>
+    <page>
+        <id>page_1</id>
+        <number>1</number>
+        <body>
+            <master>
+                <table>
+                    <fields>
+                        <field>ALUMNOS_ID</field>
+                        <field>ALUMNOS_NOMBRE</field>
+                        <field>ALUMNOS_APELLIDO1</field>                        
+                    </fields>
+                    <query>
+                      SELECT 
+                        alumnos.id as "ALUMNOS_ID",
+                        alumnos.nombre as "ALUMNOS_NOMBRE",
+                        alumnos.apellido1 as "ALUMNOS_APELLIDO1" 
+                      FROM alumnos
+                      LIMIT 3
+                    </query>
+                </table>
+                <body>
+                    <label>
+                        <id>lbl_id</id>
+                        <caption>ID=#ALUMNOS_ID#</caption>
+                    </label>
+                    <text>
+                        <id>texto_nombre</id>
+                        <value>Nombre: #ALUMNOS_NOMBRE# #ALUMNOS_APELLIDO1#</value>
+                    </text>
+                </body>
+            </master>
+            <label>
+                <id>etiqueta_1</id>
+                <caption>Soy una etiqueta</caption>
+                <position>
+                    <left>1</left>
+                    <top>2</top>
+                </position>
+                <size>
+                    <height>3</height>
+                    <width>4</width>
+                </size>
+            </label>
+            <text>
+                <id>texto_1</id>
+                <value>Soy un campo de texto</value>
+            </text>
+        </body>
+    </page>
+    <page>
+        <id>otra_pagina</id>
+        <number>2</number>
+    </page>    
+</report>

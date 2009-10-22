@@ -1,0 +1,66 @@
+﻿<report>
+    <name></name>
+    <title_report></title_report>
+    <page_header></page_header>
+    <group_header></group_header>
+    <group_footer></group_footer>
+    <page_footer></page_footer>
+</report>
+
+<position>
+    <left></left>
+    <top></top>
+</position>
+
+<size>
+    <height></height>
+    <width></width>
+</size>
+
+<label>
+    <position></position>
+    <size></size>
+    <caption></caption>
+</label>
+
+<text>
+    <position></position>
+    <size></size>
+    <value></value>
+    <field></field>
+</text>
+
+<page_header>
+    <on_before_print></on_before_print>
+    <on_after_print></on_after_print>
+    <position></position>
+    <size></size>
+    <body></body>
+</page_header>
+
+<master>
+    <table></table>
+    <body></body>
+    <detail>
+        <master_field></master_field>
+        <table></table>
+        <body></body>
+    </detail>
+    ...
+</master>
+
+<detail>
+    <master_field></master_field>
+    <table></table>
+    <body></body>
+</detail>
+
+<table>
+    <fields>
+        <field></field>
+        <field></field>
+        <field></field>
+        ...
+    </fields>
+    <query></query>
+</table>
