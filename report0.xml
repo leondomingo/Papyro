@@ -14,7 +14,8 @@
         </paper>
     </configuration>
     <params>
-        <param name="FECHA">23/10/2009</param>        
+        <param name="FECHA">01/10/2009</param>
+        <param name="NUMERO_ALUMNOS">5</param>
     </params>
     <report_title>
         <id>title_1</id>
@@ -23,21 +24,37 @@
     <page>
         <id>page_1</id>
         <number>1</number>
+        <page_header>
+            <id>page_header_1</id>
+            <options>
+                <print_on_first_page/>
+            </options>
+            <body>
+            </body>
+        </page_header>
+        <page_footer>
+            <id>page_footer_1</id>
+            <body></body>
+        </page_footer>
         <body>
             <master>
+                <id>master_1</id>
                 <table>
                     <fields>
                         <field>ALUMNOS_ID</field>
                         <field>ALUMNOS_NOMBRE</field>
-                        <field>ALUMNOS_APELLIDO1</field>                        
+                        <field>ALUMNOS_APELLIDO1</field>
+                        <field>ALUMNOS_APELLIDO2</field>
                     </fields>
                     <query>
                       SELECT 
                         alumnos.id as "ALUMNOS_ID",
                         alumnos.nombre as "ALUMNOS_NOMBRE",
-                        alumnos.apellido1 as "ALUMNOS_APELLIDO1" 
+                        coalesce(alumnos.apellido1, '') as "ALUMNOS_APELLIDO1",
+                        coalesce(alumnos.apellido2, '') as "ALUMNOS_APELLIDO2"                         
                       FROM alumnos
-                      LIMIT 30
+                      ORDER BY alumnos.apellido1, alumnos.apellido2
+                      LIMIT %(NUMERO_ALUMNOS)s
                     </query>
                 </table>
                 <body>
@@ -47,10 +64,11 @@
                     </label>
                     <text>
                         <id>texto_nombre</id>
-                        <value>Nombre: #ALUMNOS_NOMBRE# #ALUMNOS_APELLIDO1#</value>
+                        <value>Nombre: #ALUMNOS_APELLIDO1# #ALUMNOS_APELLIDO2#, #ALUMNOS_NOMBRE# </value>
                     </text>
                 </body>
                 <detail>
+                    <id>detail_1</id>
                     <master_field>ALUMNOS_ID</master_field>
                     <table>
                         <query>
@@ -59,7 +77,9 @@
                                 cursos.nombre as "CURSOS_NOMBRE"                                
                             FROM matriculas
                             JOIN cursos on cursos.id = matriculas.id_cursos_cursomatriculado
-                            WHERE matriculas.id_alumnos_alumno = %(ALUMNOS_ID)d
+                            WHERE 
+                              matriculas.id_alumnos_alumno = %(ALUMNOS_ID)d and
+                              matriculas.fechainicio $$ '%(FECHA)s'
                             ORDER BY matriculas.fechainicio
                         </query>
                         <fields>
@@ -76,8 +96,12 @@
                 </detail>
             </master>
             <label>
+                <id>lbl_vacia_1</id>
+                <caption>xxx</caption>
+            </label>
+            <label>
                 <id>etiqueta_1</id>
-                <caption>Soy una etiqueta</caption>
+                <caption>Soy una etiqueta (parámetro=#FECHA#)</caption>
                 <position>
                     <left>1</left>
                     <top>2</top>
@@ -89,12 +113,26 @@
             </label>
             <text>
                 <id>texto_1</id>
-                <value>Soy un campo de texto</value>
+                <value>Soy un campo de texto (parámetro=#FECHA#)</value>
             </text>
         </body>
     </page>
     <page>
         <id>otra_pagina</id>
         <number>2</number>
+        <body>
+            <label>
+                <id>label_2</id>
+                <caption>Parámetros:</caption>
+            </label>        
+            <label>
+                <id>label_2</id>
+                <caption>  FECHA = #FECHA#</caption>
+            </label>
+            <label>
+                <id>label_2</id>
+                <caption>  NUMERO_ALUMNOS = #NUMERO_ALUMNOS#</caption>
+            </label>            
+        </body>
     </page>    
 </report>
