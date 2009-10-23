@@ -37,6 +37,28 @@ class Font(object):
         self.style[3] = fuente.find('strike') != None
         
     xml = property(getxml, setxml)
+    
+class Parameters(object):
+    def __init__(self):
+        self.parameters = []
+        
+    def getxml(self):
+        valor = '<params>\n'
+        
+        for par in self.parameters:
+            valor += '<param name="%s">%s</param>\n' % (par[0], par[1])
+                            
+        valor += '</params>\n'
+        
+    def setxml(self, valor):
+        print valor
+        parametros = etree.tostring(valor)
+        
+        self.parameters = []
+        for param in parametros.iter('param'):
+            self.parameters.append((param.find('name').text, param.find('value').text))
+            
+    xml = property(getxml, setxml)
 
 class ReportItem(object):
     def __init__(self):
@@ -165,10 +187,52 @@ class Table(NotPrintableItem):
         
         self.query = tabla.find('query').text
         
+        self.fields = []
         for fld in tabla.find('fields').iter('field'):
             self.fields.append(fld.text)
         
-    xml = property(getxml, setxml)        
+    xml = property(getxml, setxml)
+    
+class Detail(NotPrintableItem):
+    def __init__(self, id=None):
+        NotPrintableItem.__init__(self)        
+        self.id = id
+        self.master_field = None
+        self.table = Table()
+        self.body = Body()
+        
+    def write(self, conector, master_data):
+#        print 'Detail "%s" (%s)' % (self.id, self.master_field)
+#        ReportItem.write(self)
+
+        # tratar SQL
+        master_dict = {}
+        master_dict[self.master_field] = master_data[self.master_field]
+        sql = self.table.query % master_dict        
+        
+        for detail_data in conector.conexion.execute(sql):
+            #print 'detail_data =', detail_data
+            if detail_data != None:
+                self.body.write(conector, master_data, detail_data)
+        
+    def getxml(self):
+        valor = \
+            '<detail>\n' + \
+            '  <master_field>' + (self.master_field or '') + '</master_field>\n' + \
+            self.table.xml + \
+            self.body.xml + \
+            '</detail>\n'
+            
+        return valor
+    
+    def setxml(self, valor):
+        detail = etree.fromstring(valor)
+        
+        self.master_field = detail.find('master_field').text
+        self.table.xml = etree.tostring(detail.find('table'))
+        self.body.xml = etree.tostring(detail.find('body'))
+    
+    xml = property(getxml, setxml)
     
 class Master(NotPrintableItem):
     def __init__(self, id=None):
@@ -176,21 +240,31 @@ class Master(NotPrintableItem):
         self.id = id or ''
         self.table = Table()
         self.body = Body()
+        self.details = []
         
     def write(self, conector):
 #        print 'Master "%s"' % self.id
         ReportItem.write(self)
         
-#        print 'master.body =', self.body.xml
-        
         for master_data in conector.conexion.execute(self.table.query):
-            self.body.write(conector, master_data)            
+            self.body.write(conector, master_data)
+            
+            for detalle in self.details:
+                detalle.write(conector, master_data)
+                
+    def getxmldetails(self):
+        valor = ''
+        for dt in self.details:
+            valor += dt.xml
+            
+        return valor
 
     def getxml(self):
         valor = \
             '<master>\n' + \
             self.table.xml + \
             self.body.xml + \
+            self.getxmldetails() + \
             '</master>\n'
         return valor
     
@@ -200,20 +274,14 @@ class Master(NotPrintableItem):
         self.table.xml = etree.tostring(master.find('table'))
         self.body.xml = etree.tostring(master.find('body'))
         
-    xml = property(getxml, setxml)        
+        self.details = []
+        for detalle in master.iter('detail'):
+            detail = Detail()
+            self.details.append(detail)
+            detail.xml = etree.tostring(detalle)
         
+    xml = property(getxml, setxml)       
     
-class Detail(NotPrintableItem):
-    def __init__(self, id, mf=None):
-        NotPrintableItem.__init__(self)        
-        self.id = id
-        self.master_field = mf
-        self.body = Body()
-        
-    def write(self):
-        print 'Detail "%s" (%s)' % (self.id, self.master_field)
-        ReportItem.write(self)
-        self.body.write()
         
 class Text(PrintableItem):
     def __init__(self, id=None):
@@ -228,7 +296,7 @@ class Text(PrintableItem):
     def write(self, master=None, detail=None):
 #        print 'Text "%s" = "%s" (%s)' % (self.id, self.value or '', self.field or '')
 #        print ReportItem.write(self)
-        
+
         out = self.value
         if master != None:
             for k in master.keys():
@@ -445,6 +513,7 @@ class Report(object):
         self.margin_right = None
         self.margin_top = None
         self.margin_bottom = None
+        self.parameters = Parameters()
         
         self.xml = xml
         
@@ -460,7 +529,7 @@ class Report(object):
         
     def getxml(self):        
         resultado = \
-            '<?xml version="1.0" encoding="ISO-8859-1"?>\n' + \
+            '<?xml version="1.0"?>\n' + \
             '<report>\n' + \
             '  <name>' + self.name + '</name>\n' + \
             '  <configuration>\n' + \
@@ -475,6 +544,7 @@ class Report(object):
             '      </margin>\n' + \
             '    </paper>\n' + \
             '  </configuration>\n' + \
+            self.parameters.xml + \
             self.title.xml + \
             self.getxmlpages() + \
             '</report>\n'
@@ -482,10 +552,11 @@ class Report(object):
         return resultado                    
     
     def setxml(self, valor):
-        self.pages = []
         informe = etree.fromstring(valor)
         
         self.name = informe.find('name').text
+         
+        self.parameters.xml = etree.tostring(informe.find('params'))
         
         paper = informe.find('configuration').find('paper')
         self.paper_size = paper.find('size').text.upper()
@@ -501,6 +572,7 @@ class Report(object):
         if rt != None:
             self.title.xml = etree.tostring(informe.find('report_title'))
             
+        self.pages = []
         for pagina in informe.iter('page'):
             page = ReportPage('')
             page.xml = etree.tostring(pagina)

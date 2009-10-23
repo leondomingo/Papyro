@@ -13,6 +13,9 @@
             <orientation>portrait</orientation>
         </paper>
     </configuration>
+    <params>
+        <param name="FECHA">23/10/2009</param>        
+    </params>
     <report_title>
         <id>title_1</id>
         <body></body>
@@ -34,7 +37,7 @@
                         alumnos.nombre as "ALUMNOS_NOMBRE",
                         alumnos.apellido1 as "ALUMNOS_APELLIDO1" 
                       FROM alumnos
-                      LIMIT 3
+                      LIMIT 30
                     </query>
                 </table>
                 <body>
@@ -47,6 +50,30 @@
                         <value>Nombre: #ALUMNOS_NOMBRE# #ALUMNOS_APELLIDO1#</value>
                     </text>
                 </body>
+                <detail>
+                    <master_field>ALUMNOS_ID</master_field>
+                    <table>
+                        <query>
+                            SELECT
+                                format_fecha('dd/mm/yyyy', matriculas.fechainicio) as "MATRICULAS_FECHAINICIO",
+                                cursos.nombre as "CURSOS_NOMBRE"                                
+                            FROM matriculas
+                            JOIN cursos on cursos.id = matriculas.id_cursos_cursomatriculado
+                            WHERE matriculas.id_alumnos_alumno = %(ALUMNOS_ID)d
+                            ORDER BY matriculas.fechainicio
+                        </query>
+                        <fields>
+                            <field>MATRICULAS_FECHAINICIO</field>
+                            <field>CURSOS_NOMBRE</field>
+                        </fields>
+                    </table>
+                    <body>
+                        <text>
+                            <id>texto_fecha</id>
+                            <value>Matrícula: #CURSOS_NOMBRE# #MATRICULAS_FECHAINICIO#</value>
+                        </text>
+                    </body>
+                </detail>
             </master>
             <label>
                 <id>etiqueta_1</id>
