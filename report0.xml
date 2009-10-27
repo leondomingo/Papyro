@@ -5,14 +5,21 @@
         <paper>
             <size>A4</size>
             <margin>
-                <left>1.11</left>
-                <right>2.22</right>
-                <top>3.33</top>
-                <bottom>4.44</bottom>
+                <left>1.50</left>
+                <right>1.50</right>
+                <top>1.50</top>
+                <bottom>1.50</bottom>
             </margin>
             <orientation>portrait</orientation>
         </paper>
     </configuration>
+    <font>
+        <name>Times-Roman</name>
+        <size>10</size>
+        <color></color>
+        <style>
+        </style>
+    </font>
     <params>
         <param name="FECHA">01/10/2009</param>
         <param name="NUMERO_ALUMNOS">5</param>
@@ -54,17 +61,35 @@
                         coalesce(alumnos.apellido2, '') as "ALUMNOS_APELLIDO2"                         
                       FROM alumnos
                       ORDER BY alumnos.apellido1, alumnos.apellido2
-                      LIMIT %(NUMERO_ALUMNOS)s
+                      LIMIT 100 /*%(NUMERO_ALUMNOS)s*/
                     </query>
                 </table>
                 <body>
-                    <label>
+                    <!--<label>
                         <id>lbl_id</id>
                         <caption>ID=#ALUMNOS_ID#</caption>
-                    </label>
+                    </label>-->
                     <text>
-                        <id>texto_nombre</id>
-                        <value>Nombre: #ALUMNOS_APELLIDO1# #ALUMNOS_APELLIDO2#, #ALUMNOS_NOMBRE# </value>
+                        <id>texto3</id>
+                        <value>AQUÍ UN "TEXT"</value>
+                        <position>
+                            <left>0</left>
+                            <top>0</top>
+                        </position>
+                        <font>
+                            <name>Courier</name>
+                            <size>12</size>
+                            <color></color>
+                            <style></style>
+                        </font>                            
+                    </text>                    
+                    <text>
+                        <id>texto_alumno</id>
+                        <value>(#ALUMNOS_ID#) #ALUMNOS_APELLIDO1# #ALUMNOS_APELLIDO2#, #ALUMNOS_NOMBRE# </value>
+                        <position>
+                            <left>20</left>
+                            <top>0</top>
+                        </position>
                     </text>
                 </body>
                 <detail>
@@ -78,8 +103,8 @@
                             FROM matriculas
                             JOIN cursos on cursos.id = matriculas.id_cursos_cursomatriculado
                             WHERE 
-                              matriculas.id_alumnos_alumno = %(ALUMNOS_ID)d and
-                              matriculas.fechainicio $$ '%(FECHA)s'
+                              matriculas.id_alumnos_alumno = %(ALUMNOS_ID)d
+                              /*and matriculas.fechainicio $$ '%(FECHA)s'*/
                             ORDER BY matriculas.fechainicio
                         </query>
                         <fields>
@@ -89,31 +114,49 @@
                     </table>
                     <body>
                         <text>
+                            <id>texto2</id>
+                            <value>AQUÍ UN "TEXT"</value>
+                            <font>
+                                <name>Courier</name>
+                                <size>12</size>
+                                <color></color>
+                                <style></style>
+                            </font>                            
+                        </text>
+                        <text>
                             <id>texto_fecha</id>
-                            <value>Matrícula: #CURSOS_NOMBRE# #MATRICULAS_FECHAINICIO#</value>
+                            <value>  Matrícula: #CURSOS_NOMBRE# #MATRICULAS_FECHAINICIO#</value>
+                            <position>
+                                <left>5</left>
+                                <top>0</top>
+                            </position>
                         </text>
                     </body>
                 </detail>
             </master>
             <label>
                 <id>lbl_vacia_1</id>
-                <caption>xxx</caption>
+                <caption>(Una etiqueta aquí)</caption>
             </label>
             <label>
                 <id>etiqueta_1</id>
                 <caption>Soy una etiqueta (parámetro=#FECHA#)</caption>
                 <position>
-                    <left>1</left>
-                    <top>2</top>
+                    <left>0</left>
+                    <top>0</top>
                 </position>
                 <size>
-                    <height>3</height>
-                    <width>4</width>
+                    <height>0</height>
+                    <width>0</width>
                 </size>
             </label>
             <text>
                 <id>texto_1</id>
                 <value>Soy un campo de texto (parámetro=#FECHA#)</value>
+                <position>
+                    <left></left>
+                    <top></top>
+                </position>
             </text>
         </body>
     </page>

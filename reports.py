@@ -28,7 +28,7 @@ class Font(object):
         fuente = etree.fromstring(valor)
         
         self.name = fuente.find('name').text
-        self.size = int(fuente.find('size').text)
+        self.size = int(fuente.find('size').text or 0)
         self.color = fuente.find('color').text
         
         self.style[0] = fuente.find('bold') != None
@@ -64,10 +64,10 @@ class Parameters(object):
 
 class ReportItem(object):
     def __init__(self):
-        self.left = None
-        self.top = None
-        self.height = None
-        self.width = None
+        self.left = 0
+        self.top = 0
+        self.height = 0
+        self.width = 0
         self.font = Font()
     
     def write(self):
@@ -94,13 +94,13 @@ class ReportItem(object):
         
         pos = item.find('position')
         if pos != None:
-            self.left = int(pos.find('left').text)
-            self.top = int(pos.find('top').text)
+            self.left = int(pos.find('left').text or 0)
+            self.top = int(pos.find('top').text or 0)
                 
         size = item.find('size')
         if size != None:
-            self.height = int(size.find('height').text)
-            self.width = int(size.find('width').text)
+            self.height = int(size.find('height').text or 0)
+            self.width = int(size.find('width').text or 0)
             
         if item.find('font'):
             self.font.xml = etree.tostring(item.find('font'))
@@ -120,6 +120,9 @@ class PageHeaderOptions(object):
     def __init__(self):
         self.print_on_first_page = True
         
+    def write(self, conector):
+        pass
+        
     def getxml(self):
         valor = '<options>\n'
         
@@ -130,8 +133,8 @@ class PageHeaderOptions(object):
             
         return valor
     
-    def setxml(self, value):
-        op = etree.fromstring(valo)
+    def setxml(self, valor):
+        op = etree.fromstring(valor)
         
         self.print_on_first_page = op.find('print_on_first_page') != None
         # TODO: resto de opciones
@@ -205,14 +208,14 @@ class PageFooter(NotPrintableItem):
     
 class GroupHeader(NotPrintableItem):
     def __init__(self, id=None):
-        NotPrintable.__init__(self)
+        NotPrintableItem.__init__(self)
         self.id = id
         self.body = Body()
         
-    def write(self):
+    def write(self, conector):
         print 'GroupHeader "%s"' % self.id
 #        ReportItem.write(self)
-        self.body.write()
+        self.body.write(conector)
     
 class GroupFooter(NotPrintableItem):
     def __init__(self, id=None):
@@ -220,10 +223,10 @@ class GroupFooter(NotPrintableItem):
         self.id = id
         self.body = Body()   
 
-    def write(self):
+    def write(self, c, conector):
         print 'GroupFooter "%s"' % self.id
 #        ReportItem.write(self)
-        self.body.write()
+        self.body.write(conector)
         
 class Table(NotPrintableItem):
     def __init__(self):
@@ -374,8 +377,7 @@ class Master(NotPrintableItem):
         
 class Text(PrintableItem):
     def __init__(self, id=None):
-        PrintableItem.__init__(self)
-        
+        PrintableItem.__init__(self)        
         self.id = id or ''
         self.value = None
         
@@ -400,9 +402,9 @@ class Text(PrintableItem):
         if params != None:
             for par in params.params:
                 k2 = '#%s#' % par[0]
-                out = out.replace(k2, par[1])            
+                out = out.replace(k2, par[1])    
                 
-        print out           
+        print out
 
     def getxml(self):
         valor = \
@@ -440,8 +442,6 @@ class Label(PrintableItem):
 #        ReportItem.write(self)
         
         out = self.caption
-        
-        print out
         
         if master != None:
             for k in master.keys():
@@ -513,8 +513,6 @@ class Body(NotPrintableItem):
         cuerpo = etree.fromstring(valor)
         
         for rep_item in cuerpo.iterchildren():
-            
-            print '***********************', self, rep_item.tag
             
             if rep_item.tag == 'label':
                 lbl = Label()
@@ -602,7 +600,6 @@ class ReportTitle(NotPrintableItem):
         
     def write(self, conector):
         print 'ReportTitle "%s"' % self.id
-#        ReportItem.write(self)
         self.body.write(conector)
         
     def getxml(self):
@@ -634,6 +631,7 @@ class Report(object):
         self.margin_right = None
         self.margin_top = None
         self.margin_bottom = None
+        self.font = Font()
         self.params = Parameters()
         
         self.xml = xml
@@ -665,6 +663,7 @@ class Report(object):
             '      </margin>\n' + \
             '    </paper>\n' + \
             '  </configuration>\n' + \
+            self.font.xml + \
             self.params.xml + \
             self.title.xml + \
             self.getxmlpages() + \
@@ -676,6 +675,9 @@ class Report(object):
         informe = etree.fromstring(valor)
         
         self.name = informe.find('name').text
+        
+        if informe.find('font') != None:
+            self.font.xml = etree.tostring(informe.find('font'))
          
         self.params.xml = etree.tostring(informe.find('params'))
         
@@ -704,23 +706,7 @@ class Report(object):
         
     def write(self, conector):
         print 'Report "%s"' % self.name
+        
         self.title.write(conector)
         for page in self.pages:
             page.write(conector, self.params)
-
-if __name__ == '__main__':
-    
-    import cStringIO
-    from unidadescompartidas import conexion
-    
-    f = file('./report0.xml', 'r')
-    try:    
-        informe = Report(xml=f.read())
-        
-        rep = etree.fromstring(informe.xml)
-        print etree.tostring(rep, pretty_print=True)
-        
-        conector = conexion()        
-        informe.write(conector)
-    finally:
-        f.close()
