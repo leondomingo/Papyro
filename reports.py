@@ -46,7 +46,10 @@ class Parameters(object):
         valor = '<params>\n'
         
         for par in self.params:
-            valor += '<param name="%s">%s</param>\n' % (par[0], par[1])
+            # 0 - name
+            # 1 - (valor)
+            # 2 - type
+            valor += '<param name="%s" type="%s">%s</param>\n' % (par[0], par[2], par[1])
                             
         valor += '</params>\n'
         
@@ -58,7 +61,7 @@ class Parameters(object):
         
         self.parameters = []
         for param in parametros.iterchildren('param'):
-            self.params.append((param.attrib['name'], param.text))
+            self.params.append((param.attrib['name'], param.text, param.attrib['type']))
             
     xml = property(getxml, setxml)
 
@@ -102,7 +105,7 @@ class ReportItem(object):
             self.height = int(size.find('height').text or 0)
             self.width = int(size.find('width').text or 0)
             
-        if item.find('font'):
+        if item.find('font') != None:
             self.font.xml = etree.tostring(item.find('font'))
         
     xml = property(getxml, setxml)   
@@ -382,7 +385,7 @@ class Text(PrintableItem):
         self.value = None
         
     def __repr__(self):
-        return '"%s" = "%s" (%s)' % (self.id, self.value or '', self.field or '')
+        return '"%s" = "%s"' % (self.id, self.value or '')
         
     def write(self, master=None, detail=None, params=None):
 #        print 'Text "%s" = "%s" (%s)' % (self.id, self.value or '', self.field or '')

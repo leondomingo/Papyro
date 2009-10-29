@@ -2,8 +2,9 @@
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm 
+from reportlab.lib.units import mm
 import reports
+#from random import seed, randint
 
 class ReportPdf(object):
     
@@ -11,14 +12,16 @@ class ReportPdf(object):
         self.report = report
         self.conector = conector
         self.canvas = None
-        self.cur_y = 0
         
     def newPage(self):
+        
+        print '>>>>>>>>>>>>>>>>>>>>newPage<<<<<<<<<<<<<<<<<<<<<'
+        
         # margin
-        m_left = self.report.margin_left * 10 * mm
-        m_right = self.report.margin_right * 10 * mm
-        m_top = self.report.margin_top * 10 * mm
-        m_bottom = self.report.margin_bottom * 10 * mm
+        m_left = self.report.margin_left * mm
+        m_right = self.report.margin_right * mm
+        m_top = self.report.margin_top * mm
+        m_bottom = self.report.margin_bottom * mm
         
         # anchura de A4
         wd0 = 210 * mm
@@ -34,8 +37,6 @@ class ReportPdf(object):
         # dibujar espacio con los márgenes
         self.canvas.rect(0, -self.hg, self.wd, self.hg)
         
-        self.cur_y = 0
-        
         # fuente
         self.canvas.setFont(self.report.font.name, self.report.font.size)
         
@@ -46,60 +47,122 @@ class ReportPdf(object):
             self.canvas = c
         else:
             self.canvas = canvas.Canvas(file, pagesize=A4)
-            
+           
+#        seed()
+           
         self.newPage()
+        primera_pagina = True
         
         # title
         self.writeReportTitle(self.report.title)
         
         # pages
         for page in self.report.pages:
+            if not primera_pagina:
+                self.newPage()
+                
             self.writeReporPage(page)
             self.canvas.showPage()
+            
+            primera_pagina = False
             
         self.canvas.save()
     
     def writeReportTitle(self, title):
         # TODO: hace falta un "origen" desde donde empezar a dibujar
-        self.writeBody(title.body)
+        self.writeBody(title.body, 0)
     
     def writeReporPage(self, page):
+        
+        print 'ReportPage:', str(page)
+        
         # page_header
         if page.page_header != None:
             self.writePageHeader(page.page_header)       
         
         # body
-        # TODO: hace falta un "origen" desde donde empezar a dibujar
-        self.writeBody(page.body)
+        self.writeBody(page.body, 0)
         
         # page_footer
         if page.page_footer != None:
             self.writePageFooter(page.page_footer)
     
-    def writeBody(self, body, mdata=None, ddata=None):
+    def writeBody(self, body, y, mdata=None, ddata=None):
         
-#        self.canvas.saveState()        
-#        self.canvas.translate(body.left, -body.top)
-        
-        # items
+        # averiguar si todos los elementos son "Text" o no
+        only_text = True
         for item in body.items:
-            # Master
-            if isinstance(item, reports.Master):
-                self.writeMaster(item)
+            if not isinstance(item, reports.Text):
+                only_text = False
+                break
+                    
+        min_y = y
+        new_page = False          
+        y0 = y  
+        if only_text:
             
-            # Label    
-            elif isinstance(item, reports.Label):
-                self.writeLabel(item, mdata, ddata)
+#            print '***POSICIONAL***'
             
-            # Text
-            elif isinstance(item, reports.Text):
-                self.writeText(item, mdata, ddata)
+            # posicional
+            # cada elemento tiene una posición predefinida
+            
+            text_items = []
+            text_items_next_page = []
+            for item in body.items:
+                y, new_page = self.getTextHeight(item, y0)
+                if new_page:
+                    text_items_next_page.append((item, y))
+                else:
+                    text_items.append(item)
+                    
+            # en esta página
+            for item in text_items:
+                print '(en esta página)'
+                y, new_page = self.writeText(item, y0, mdata, ddata)
+                if y < min_y: min_y = y                
+            
+            if text_items_next_page != []:
+                print '***NUEVA PÁGINA***'
+                # crear nueva página
+                y = 0
+                min_y = y
+                new_page = True
+                self.canvas.showPage()
+                print '******************Voy a crear un nueva página***************'
+                self.newPage()
+            
+                # en la siguiente página
+                for item, y in text_items_next_page:
+                    self.writeText(item, y, mdata, ddata)
+                    if y < min_y: min_y = y
                 
-#        self.canvas.restoreState()
+            return min_y, new_page
+                
+        else:
+#            print '***ACUMULATIVA***'            
+            
+            # acumulativa
+            # la posición de un elemento depende de todos los anteriores
+            
+            for item in body.items:
+                # Master
+                if isinstance(item, reports.Master):
+                    y, new_page = self.writeMaster(item, y)
+                
+                # Text
+                elif isinstance(item, reports.Text):
+                    y, new_page = self.writeText(item, y, mdata, ddata)
+                
+                if not new_page:
+                    if y < min_y: min_y = y
+                else:
+                    min_y = y
+            
+        return min_y, new_page
     
-    def writeMaster(self, master):
+    def writeMaster(self, master, y):
         
-        sql = master.table.query.replace('$$', '<')
+        sql = master.table.query
         
         # parámetros
         master_dict = {}
@@ -110,20 +173,29 @@ class ReportPdf(object):
         if master_dict != {}:
             sql %= master_dict            
         
+        min_y = y
+        new_page = False
         for mdata in self.conector.conexion.execute(sql):
-            # TODO: hace falta un "origen" desde donde empezar a dibujar
-            self.writeBody(master.body, mdata)
+            y, new_page = self.writeBody(master.body, y, mdata)
+            if new_page: min_y = y
             
             for detalle in master.details:
-                self.writeDetail(detalle, mdata)
+                y, new_page = self.writeDetail(detalle, y, mdata)
+                
+                if not new_page:
+                    if y < min_y: min_y = y
+                else:
+                    min_y = y
+                
+        return min_y, new_page        
     
-    def writeDetail(self, detail, mdata):
+    def writeDetail(self, detail, y, mdata):
 
         # tratar SQL
         detail_dict = {}
         detail_dict[detail.master_field] = mdata[detail.master_field]       
         
-        sql = detail.table.query.replace('$$', '<')
+        sql = detail.table.query
         
         # parámetros 
         for par in self.report.params.params:
@@ -132,9 +204,16 @@ class ReportPdf(object):
                 
         sql %= detail_dict
         
-        for ddata in self.conector.conexion.execute(sql):                        
-            # TODO: hace falta un "origen" desde donde empezar a dibujar
-            self.writeBody(detail.body, mdata, ddata)
+        min_y = y
+        new_page = False
+        for ddata in self.conector.conexion.execute(sql):
+            y, new_page = self.writeBody(detail.body, y, mdata, ddata)
+            if not new_page:
+                if y < min_y: min_y = y
+            else:
+                min_y = y
+            
+        return min_y, new_page
     
     def writePageHeader(self, page_header):
         pass
@@ -148,8 +227,17 @@ class ReportPdf(object):
     def writeGroupFooter(self, group_footer):
         pass
     
-    def writeText(self, text, mdata=None, ddata=None):
-
+    def getTextHeight(self, text, y):
+        new_page = False
+        y -= (text.top * mm + text.height * mm)
+        if y < -self.hg:
+            y = y + self.hg # y = y - (-self.hg)
+            new_page = True
+            
+        return y, new_page
+    
+    def writeText(self, text, y, mdata=None, ddata=None):
+        
         out = text.value
         
         # master
@@ -170,7 +258,7 @@ class ReportPdf(object):
             out = out.replace(k2, par[1])
         
         # TODO: escribir en el PDF
-        print out
+        print out, y
 
         sz = self.report.font.size
         if text.font.size != None:
@@ -180,52 +268,32 @@ class ReportPdf(object):
         if text.font.name != None:
             fn = text.font.name
             
-        self.cur_y -= (text.top + text.height)
-        #self.cur_y -= sz
-        if self.cur_y < -self.hg:
+        new_page = False
+        y -= (text.top * mm + text.height * mm)
+        if y < -self.hg:
             self.canvas.showPage()
             self.newPage()
-            self.cur_y = -sz
-            
+            y = -(text.top * mm + text.height * mm)
+            new_page = True
+            print '*************************NEW_PAGE = True***'
+        
         # guardar estado            
         self.canvas.saveState()
 
         # cambiar fuente
+#        r = randint(0, 255) / 255.0
+#        g = randint(0, 255) / 255.0
+#        b = randint(0, 255) / 255.0
+#        self.canvas.setStrokeColorRGB(r, g, b)
+#        self.canvas.rect(0, y, self.wd, text.height * mm, stroke=1, fill=0)
         self.canvas.setFont(fn, sz)
-                        
-        self.canvas.drawString(text.left * mm, self.cur_y, out)
+        
+        self.canvas.drawString(text.left * mm, y, out)
         
         # restaurar estado
         self.canvas.restoreState()
-            
-    def writeLabel(self, label, mdata=None, ddata=None):
-
-        out = label.caption
         
-        # master
-        if mdata != None:
-            for k in mdata.keys():
-                k2 = '#%s#' % str(k)
-                out = out.replace(k2, str(mdata[k]))
-
-        # detail
-        if ddata != None:
-            for k in ddata.keys():
-                k2 = '#%s#' % str(k)
-                out = out.replace(k2, str(ddata[k]))
-
-        # params
-        for par in self.report.params.params:
-            k2 = '#%s#' % par[0]
-            out = out.replace(k2, par[1])
-                
-        # TODO: escribir en el PDF
-        print out
+        return y, new_page
+    
+    
         
-        self.cur_y -= 12
-        if self.cur_y < -self.hg:
-            self.canvas.showPage()
-            self.newPage()
-            self.cur_y = -12
-
-        self.canvas.drawString(10, self.cur_y, out)
