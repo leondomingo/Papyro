@@ -59,7 +59,7 @@ class Parameters(object):
     def setxml(self, valor):        
         parametros = etree.fromstring(valor)        
         
-        self.parameters = []
+        self.params = []
         for param in parametros.iterchildren('param'):
             self.params.append((param.attrib['name'], param.text, param.attrib['type']))
             
@@ -175,6 +175,8 @@ class PageHeader(NotPrintableItem):
         
         if ph.find('options') != None:
             self.options.xml = etree.tostring(ph.find('options'))
+            
+        ReportItem.setxml(self, valor)
     
     xml = property(getxml, setxml)
     
@@ -428,58 +430,6 @@ class Text(PrintableItem):
             
         ReportItem.setxml(self, valor)
             
-    xml = property(getxml, setxml) 
-        
-class Label(PrintableItem):
-    def __init__(self, id=None):
-        PrintableItem.__init__(self)
-        
-        self.id = id or ''
-        self.caption = None
-        
-    def __repr__(self):
-        return '"%s" = "%s"' % (self.id, self.caption or '')
-        
-    def write(self, master=None, detail=None, params=None):
-#        print 'Label "%s" = "%s"' % (self.id, self.caption)
-#        ReportItem.write(self)
-        
-        out = self.caption
-        
-        if master != None:
-            for k in master.keys():
-                k2 = '#' + str(k) + '#'
-                out = out.replace(k2, str(master[k]))
-                
-        if detail != None:
-            for k in detail.keys():
-                k2 = '#' + str(k) + '#'
-                out = out.replace(k2, str(detail[k]))
-
-        if params != None:
-            for par in params.params:
-                k2 = '#%s#' % par[0]
-                out = out.replace(k2, par[1])
-                
-        print out        
-        
-    def getxml(self):
-        valor = \
-            '<label>\n' + \
-            '  <id>' + self.id + '</id>\n' + \
-            '  <caption>' + (self.caption or '') + '</caption>\n' + \
-            ReportItem.getxml(self) + \
-            '</label>\n'
-            
-        return valor
-    
-    def setxml(self, valor):        
-        etiqueta = etree.fromstring(valor)
-        self.id = etiqueta.find('id').text or ''
-        self.caption = etiqueta.find('caption').text or ''
-        
-        ReportItem.setxml(self, valor)
-        
     xml = property(getxml, setxml)
 
 class Body(NotPrintableItem):
@@ -517,13 +467,7 @@ class Body(NotPrintableItem):
         
         for rep_item in cuerpo.iterchildren():
             
-            if rep_item.tag == 'label':
-                lbl = Label()
-                self.items.append(lbl)
-                
-                lbl.xml = etree.tostring(rep_item)
-                
-            elif rep_item.tag == 'text':
+            if rep_item.tag == 'text':
                 txt = Text()
                 self.items.append(txt)
                 

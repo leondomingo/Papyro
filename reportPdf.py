@@ -4,7 +4,6 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 import reports
-import string
 #from random import seed, randint
 
 class ReportPdf(object):
@@ -13,6 +12,9 @@ class ReportPdf(object):
         self.report = report
         self.conector = conector
         self.canvas = None
+        self.hg = 0
+        self.wd = 0
+        self.cur_page = None
         
     def newPage(self):
         
@@ -26,12 +28,20 @@ class ReportPdf(object):
         wd0 = 210 * mm
         hg0 = 297 * mm
         
+        # page_header
+        ph_height = 0
+        if self.cur_page.page_header != None:
+            ph_height = self.cur_page.page_header.height * mm
+            
+        # page_footer
+        pf_height = 0
+        
         # anchura con márgenes
         self.wd = wd0 - m_left - m_right
-        self.hg = hg0 - m_top - m_bottom
+        self.hg = hg0 - m_top - m_bottom - ph_height - pf_height
         
         # mover origen
-        self.canvas.translate(m_left, self.hg + m_bottom)
+        self.canvas.translate(m_left, self.hg + m_bottom + pf_height)
         
         # dibujar espacio con los márgenes
         self.canvas.rect(0, -self.hg, self.wd, self.hg)
@@ -39,13 +49,17 @@ class ReportPdf(object):
         # fuente
         self.canvas.setFont(self.report.font.name, self.report.font.size)
         
-    def writeReport(self, file, c=None, params=None):
+        # imprimir page_header de la página actual
+        if self.cur_page.page_header != None:            
+            self.writePageHeader(self.cur_page.page_header)
+        
+    def writeReport(self, pdf_file, c=None, params=None):
         
         # canvas
         if c != None:
             self.canvas = c
         else:
-            self.canvas = canvas.Canvas(file, pagesize=A4)
+            self.canvas = canvas.Canvas(pdf_file, pagesize=A4)
             
         param_names = [param[0] for param in self.report.params.params]
             
@@ -56,6 +70,7 @@ class ReportPdf(object):
                     i = param_names.index(p[0])
                     self.report.params.params[i] = p
            
+        self.cur_page = self.report.pages[0]
         self.newPage()
         primera_pagina = True
         
@@ -64,6 +79,7 @@ class ReportPdf(object):
         
         # pages
         for page in self.report.pages:
+            self.cur_page = page
             if not primera_pagina:
                 self.newPage()
                 
@@ -81,10 +97,10 @@ class ReportPdf(object):
         
         print 'ReportPage:', str(page)
         
-        # page_header
-        if page.page_header != None:
-            self.writePageHeader(page.page_header)       
-        
+#        # page_header
+#        if page.page_header != None:
+#            self.writePageHeader(page.page_header, 0)
+            
         # body
         self.writeBody(page.body, 0)
         
@@ -127,11 +143,11 @@ class ReportPdf(object):
             
             if text_items_next_page != []:
                 # crear nueva página
-                y = 0
-                min_y = y
                 new_page = True
                 self.canvas.showPage()
                 self.newPage()
+                y = 0
+                min_y = y
             
                 # en la siguiente página
                 for item, y in text_items_next_page:
@@ -160,7 +176,7 @@ class ReportPdf(object):
                 else:
                     min_y = y
             
-        return min_y, new_page
+        return min_y, new_page    
     
     def writeMaster(self, master, y):
         
@@ -218,7 +234,11 @@ class ReportPdf(object):
         return min_y, new_page
     
     def writePageHeader(self, page_header):
-        pass
+        self.canvas.saveState()
+        self.canvas.translate(0, page_header.height * mm)
+        self.canvas.rect(0, 0, self.wd, -page_header.height * mm)        
+        self.writeBody(page_header.body, 0)
+        self.canvas.restoreState()
     
     def writePageFooter(self, page_footer):
         pass
@@ -236,7 +256,7 @@ class ReportPdf(object):
             y = y + self.hg # y = y - (-self.hg)
             new_page = True
             
-        return y, new_page
+        return y, new_page    
     
     def writeText(self, text, y, mdata=None, ddata=None):
         
@@ -260,7 +280,7 @@ class ReportPdf(object):
             out = out.replace(k2, par[1])
         
         # imprimir contenido por "stdout"
-        print out
+        print out, y - (text.top * mm + text.height * mm)
 
         sz = self.report.font.size
         if text.font.size != None:
@@ -290,9 +310,9 @@ class ReportPdf(object):
         # cambiar fuente
         self.canvas.setFont(fn, sz)
         if text.font.color != None:
-            r = string.atoi(text.font.color[0:2], 16) / 255.0
-            g = string.atoi(text.font.color[2:4], 16) / 255.0
-            b = string.atoi(text.font.color[4:6], 16) / 255.0
+            r = int(text.font.color[0:2], 16) / 255.0
+            g = int(text.font.color[2:4], 16) / 255.0
+            b = int(text.font.color[4:6], 16) / 255.0
             self.canvas.setFillColorRGB(r, g, b)
         
         self.canvas.drawString(text.left * mm, y, out)

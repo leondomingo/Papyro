@@ -15,36 +15,6 @@ try:
     conector = conexion()
     #informe.write(conector)
     pdf = ReportPdf(informe, conector)
-    pdf.writeReport('./hello.pdf', params=[('NUMERO_ALUMNOS', '1', 'int')])
+    pdf.writeReport(pdf_file='./hello.pdf', params=[('NUMERO_ALUMNOS', '100', 'int')])
 finally:
     f.close()
-
-#c = canvas.Canvas('./hello.pdf', pagesize=A4)
-#
-#for f in c.getAvailableFonts():
-#    print f
-#
-#c.saveState()
-#c.setFont('Helvetica-Bold', size=12)
-#c.translate(200, 200)
-##c.scale(1.0, 2.0)
-#
-## 1
-#c.drawString(10, 10, '(1) Estoy en 10, 10')
-#
-#c.restoreState()
-#
-#c.saveState()
-#c.setFont('Times-Roman', size=20)
-#c.translate(100, 100)
-#
-## 2
-#c.drawString(10, 10, '(2) Estoy en 10, 10')
-#
-#c.restoreState()
-#
-## 3
-#c.drawString(10, 10, '(3) Vuelvo al principio... (10, 10)')
-#
-#c.showPage()
-#c.save()
