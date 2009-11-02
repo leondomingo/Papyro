@@ -67,7 +67,7 @@
                 <body>
                     <text>
                         <id>texto3</id>
-                        <value>AQUÍ UN "TEXT"</value>
+                        <value>Soy un maestro</value>
                         <position>
                             <left>0</left>
                             <top>0</top>
@@ -79,13 +79,32 @@
                         <font>
                             <name>Courier</name>
                             <size>12</size>
-                            <color></color>
+                            <color>FFC0AB</color>
                             <style></style>
                         </font>                            
-                    </text>                    
+                    </text>
+                    <!-- relleno -->
+                    <text>
+                        <id></id>
+                        <value>(esto es un hueco)</value>
+                        <size>
+                            <height>6</height>
+                            <width>0</width>
+                        </size>
+                        <position>
+                            <left>0</left>
+                            <top>7</top>
+                        </position>
+                    </text>
                     <text>
                         <id>texto_alumno</id>
                         <value>(#ALUMNOS_ID#) #ALUMNOS_APELLIDO1# #ALUMNOS_APELLIDO2#, #ALUMNOS_NOMBRE# </value>
+                        <font>
+                            <name></name>
+                            <size>8</size>
+                            <color>FA00F0</color>
+                            <style></style>
+                        </font>
                         <position>
                             <left>10</left>
                             <top>3</top>
@@ -119,7 +138,7 @@
                     <body>
                         <text>
                             <id>texto2</id>
-                            <value>AQUÍ UN "TEXT"</value>
+                            <value>Soy un detalle</value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>
@@ -127,25 +146,25 @@
                             <font>
                                 <name>Courier</name>
                                 <size>12</size>
-                                <color></color>
+                                <color>0000FF</color>
                                 <style></style>
                             </font>                            
                         </text>
                         <text>
                             <id>texto2b</id>
-                            <value>AQUÍ OTRO "TEXT"</value>
+                            <value>Hola, Mundo!</value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>
                             </size>
                             <position>
                                 <left>30</left>
-                                <top>1</top>
+                                <top>3</top>
                             </position>
                             <font>
                                 <name>Courier</name>
                                 <size>12</size>
-                                <color></color>
+                                <color>FB0000</color>
                                 <style></style>
                             </font>                            
                         </text>
@@ -154,12 +173,18 @@
                             <value>  Matrícula: #CURSOS_NOMBRE# #MATRICULAS_FECHAINICIO#</value>
                             <position>
                                 <left>5</left>
-                                <top>0</top>
+                                <top>6</top>
                             </position>
                             <size>
                                 <height>3</height>
                                 <width>0</width>
                             </size>
+                            <font>
+                                <name>Courier</name>
+                                <size>7</size>
+                                <color>00AA00</color>
+                                <style></style>
+                            </font>
                         </text>
                     </body>
                 </detail>
@@ -209,6 +234,10 @@
                     <height>3</height>
                     <width>0</width>
                 </size>
+                <position>
+                    <left>5</left>
+                    <top>0</top>
+                </position>
             </text>        
             <text>
                 <id>label_3</id>
@@ -217,6 +246,10 @@
                     <height>3</height>
                     <width>0</width>
                 </size>
+                <position>
+                    <left>8</left>
+                    <top>4</top>
+                </position>                
             </text>
             <text>
                 <id>label_4</id>
@@ -225,7 +258,11 @@
                     <height>3</height>
                     <width>0</width>
                 </size>
-            </text>            
+                <position>
+                    <left>12</left>
+                    <top>8</top>
+                </position>
+            </text>
         </body>
     </page>    
 </report>

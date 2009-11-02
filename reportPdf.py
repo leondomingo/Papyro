@@ -4,6 +4,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 import reports
+import string
 #from random import seed, randint
 
 class ReportPdf(object):
@@ -14,8 +15,6 @@ class ReportPdf(object):
         self.canvas = None
         
     def newPage(self):
-        
-        print '>>>>>>>>>>>>>>>>>>>>newPage<<<<<<<<<<<<<<<<<<<<<'
         
         # margin
         m_left = self.report.margin_left * mm
@@ -40,15 +39,22 @@ class ReportPdf(object):
         # fuente
         self.canvas.setFont(self.report.font.name, self.report.font.size)
         
-    def writeReport(self, file, c=None):
+    def writeReport(self, file, c=None, params=None):
         
         # canvas
         if c != None:
             self.canvas = c
         else:
             self.canvas = canvas.Canvas(file, pagesize=A4)
-           
-#        seed()
+            
+        param_names = [param[0] for param in self.report.params.params]
+            
+        # params
+        if params != None:
+            for p in params:
+                if p[0] in param_names:
+                    i = param_names.index(p[0])
+                    self.report.params.params[i] = p
            
         self.newPage()
         primera_pagina = True
@@ -69,7 +75,6 @@ class ReportPdf(object):
         self.canvas.save()
     
     def writeReportTitle(self, title):
-        # TODO: hace falta un "origen" desde donde empezar a dibujar
         self.writeBody(title.body, 0)
     
     def writeReporPage(self, page):
@@ -117,18 +122,15 @@ class ReportPdf(object):
                     
             # en esta página
             for item in text_items:
-                print '(en esta página)'
                 y, new_page = self.writeText(item, y0, mdata, ddata)
                 if y < min_y: min_y = y                
             
             if text_items_next_page != []:
-                print '***NUEVA PÁGINA***'
                 # crear nueva página
                 y = 0
                 min_y = y
                 new_page = True
                 self.canvas.showPage()
-                print '******************Voy a crear un nueva página***************'
                 self.newPage()
             
                 # en la siguiente página
@@ -257,8 +259,8 @@ class ReportPdf(object):
             k2 = '#%s#' % par[0]
             out = out.replace(k2, par[1])
         
-        # TODO: escribir en el PDF
-        print out, y
+        # imprimir contenido por "stdout"
+        print out
 
         sz = self.report.font.size
         if text.font.size != None:
@@ -275,18 +277,23 @@ class ReportPdf(object):
             self.newPage()
             y = -(text.top * mm + text.height * mm)
             new_page = True
-            print '*************************NEW_PAGE = True***'
         
         # guardar estado            
         self.canvas.saveState()
-
-        # cambiar fuente
+        
 #        r = randint(0, 255) / 255.0
 #        g = randint(0, 255) / 255.0
 #        b = randint(0, 255) / 255.0
 #        self.canvas.setStrokeColorRGB(r, g, b)
 #        self.canvas.rect(0, y, self.wd, text.height * mm, stroke=1, fill=0)
+
+        # cambiar fuente
         self.canvas.setFont(fn, sz)
+        if text.font.color != None:
+            r = string.atoi(text.font.color[0:2], 16) / 255.0
+            g = string.atoi(text.font.color[2:4], 16) / 255.0
+            b = string.atoi(text.font.color[4:6], 16) / 255.0
+            self.canvas.setFillColorRGB(r, g, b)
         
         self.canvas.drawString(text.left * mm, y, out)
         

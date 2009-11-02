@@ -15,7 +15,7 @@ try:
     conector = conexion()
     #informe.write(conector)
     pdf = ReportPdf(informe, conector)
-    pdf.writeReport('./hello.pdf')
+    pdf.writeReport('./hello.pdf', params=[('NUMERO_ALUMNOS', '1', 'int')])
 finally:
     f.close()
 
