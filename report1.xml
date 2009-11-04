@@ -1,66 +1,105 @@
-﻿<report>
-    <name></name>
-    <title_report></title_report>
-    <page_header></page_header>
-    <group_header></group_header>
-    <group_footer></group_footer>
-    <page_footer></page_footer>
-</report>
-
-<position>
-    <left></left>
-    <top></top>
-</position>
-
-<size>
-    <height></height>
-    <width></width>
-</size>
-
-<label>
-    <position></position>
-    <size></size>
-    <caption></caption>
-</label>
-
-<text>
-    <position></position>
-    <size></size>
-    <value></value>
-    <field></field>
-</text>
-
-<page_header>
-    <on_before_print></on_before_print>
-    <on_after_print></on_after_print>
-    <position></position>
-    <size></size>
-    <body></body>
-</page_header>
-
-<master>
-    <table></table>
-    <body></body>
-    <detail>
-        <master_field></master_field>
-        <table></table>
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<report>
+    <name>Otro informe con GroupHeader</name>
+    <configuration>
+        <paper>
+            <size>A4</size>
+            <margin>
+                <left>15</left>
+                <right>15</right>
+                <top>15</top>
+                <bottom>15</bottom>
+            </margin>
+            <orientation>portrait</orientation>
+        </paper>
+    </configuration>
+    <font>
+        <name>Times-Roman</name>
+        <size>10</size>
+        <color></color>
+        <style>
+        </style>
+    </font>
+    <params>
+        <param name="NUMERO_GRUPOS" type="int">200</param>
+    </params>
+    <report_title>
+        <id>title_1</id>
         <body></body>
-    </detail>
-    ...
-</master>
-
-<detail>
-    <master_field></master_field>
-    <table></table>
-    <body></body>
-</detail>
-
-<table>
-    <fields>
-        <field></field>
-        <field></field>
-        <field></field>
-        ...
-    </fields>
-    <query></query>
-</table>
+    </report_title>
+    <page>
+        <id>page_1</id>
+        <number>1</number>
+        <body>
+            <master>
+                <id>master_1</id>
+                <table>
+                    <fields>
+                        <field>CURSOS_ID</field>
+                        <field>CURSOS_NOMBRE</field>
+                        <field>GRUPOS_ID</field>
+                        <field>GRUPOS_NOMBRE</field>
+                    </fields>
+                    <query>
+                      SELECT 
+                        cursos.id as "CURSOS_ID",
+                        cursos.nombre as "CURSOS_NOMBRE",
+                        grupos.id as "GRUPOS_ID",
+                        grupos.nombre as "GRUPOS_NOMBRE",
+                        coalesce(clientes.nombre, '') as "CLIENTES_NOMBRE"
+                      FROM grupos
+                      JOIN cursos on cursos.id = grupos.id_cursos_cursodelgrupo
+                      LEFT JOIN clientes on clientes.id = cursos.id_clientes_propietario
+                      ORDER BY cursos.nombre
+                      --LIMIT %(NUMERO_GRUPOS)s
+                    </query>
+                </table>
+                <body></body>
+                <group_header>
+                    <id>ph_1</id>
+                    <field>CURSOS_NOMBRE</field>
+                    <header>
+                        <text>
+                            <id>111</id>
+                            <value>Curso/ ID: #CURSOS_ID# Nombre: #CURSOS_NOMBRE# (#CLIENTES_NOMBRE#)</value>
+                            <position>
+                                <left>5</left>
+                                <top>2</top>
+                            </position>
+                            <size>
+                                <height>3</height>
+                                <width>0</width>
+                            </size>
+                            <font>
+                                <name>Courier</name>
+                                <size>12</size>
+                                <color>BBBCBB</color>
+                                <style></style>
+                            </font>
+                        </text>                        
+                    </header>
+                    <body>
+                        <text>
+                            <id>222</id>
+                            <value>Grupo/ ID: #GRUPOS_ID# Nombre: #GRUPOS_NOMBRE#</value>
+                            <position>
+                                <left>15</left>
+                                <top>2</top>
+                            </position>
+                            <size>
+                                <height>3</height>
+                                <width>0</width>
+                            </size>
+                            <font>
+                                <name>Courier</name>
+                                <size>7</size>
+                                <color>00AA00</color>
+                                <style></style>
+                            </font>
+                        </text>
+                    </body>
+                </group_header>
+            </master>
+        </body>
+    </page>
+</report>

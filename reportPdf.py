@@ -189,21 +189,27 @@ class ReportPdf(object):
                 master_dict[par[0]] = par[1]
                 
         if master_dict != {}:
-            sql %= master_dict            
-        
+            sql %= master_dict
+            
         min_y = y
         new_page = False
-        for mdata in self.conector.conexion.execute(sql):
-            y, new_page = self.writeBody(master.body, y, mdata)
-            if new_page: min_y = y
             
-            for detalle in master.details:
-                y, new_page = self.writeDetail(detalle, y, mdata)
+        if master.group_header != None:
+            # con GroupHeader
+            self.writeGroupHeader(master.group_header, y, data=self.conector.conexion.execute(sql))        
+        else:
+            # sin GroupHeader
+            for mdata in self.conector.conexion.execute(sql):
+                y, new_page = self.writeBody(master.body, y, mdata)
+                if new_page: min_y = y
                 
-                if not new_page:
-                    if y < min_y: min_y = y
-                else:
-                    min_y = y
+                for detalle in master.details:
+                    y, new_page = self.writeDetail(detalle, y, mdata)
+                    
+                    if not new_page:
+                        if y < min_y: min_y = y
+                    else:
+                        min_y = y
                 
         return min_y, new_page        
     
@@ -243,8 +249,23 @@ class ReportPdf(object):
     def writePageFooter(self, page_footer):
         pass
     
-    def writeGroupHeader(self, group_header):
-        pass
+    def writeGroupHeader(self, group_header, y, data):
+        field_value = None
+        min_y = y
+        new_page = False
+        for mdata in data:
+            if mdata[group_header.field] != field_value:
+                y, new_page = self.writeBody(group_header.header, y, mdata) #, ddata)
+                field_value = mdata[group_header.field]
+                
+            y, new_page = self.writeBody(group_header.body, y, mdata)
+            
+            if not new_page:
+                if y < min_y: min_y = y
+            else:
+                min_y = y
+                
+        return min_y, new_page
     
     def writeGroupFooter(self, group_footer):
         pass
@@ -280,7 +301,7 @@ class ReportPdf(object):
             out = out.replace(k2, par[1])
         
         # imprimir contenido por "stdout"
-        print out, y - (text.top * mm + text.height * mm)
+        print out, y - (text.top * mm + text.height * mm), text.top, text.height
 
         sz = self.report.font.size
         if text.font.size != None:
@@ -301,12 +322,6 @@ class ReportPdf(object):
         # guardar estado            
         self.canvas.saveState()
         
-#        r = randint(0, 255) / 255.0
-#        g = randint(0, 255) / 255.0
-#        b = randint(0, 255) / 255.0
-#        self.canvas.setStrokeColorRGB(r, g, b)
-#        self.canvas.rect(0, y, self.wd, text.height * mm, stroke=1, fill=0)
-
         # cambiar fuente
         self.canvas.setFont(fn, sz)
         if text.font.color != None:

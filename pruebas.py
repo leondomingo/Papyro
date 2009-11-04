@@ -6,7 +6,7 @@ from unidadescompartidas import conexion
 #from reportlab.pdfgen import canvas
 #from reportlab.lib.pagesizes import A4
 
-f = file('./report0.xml', 'r')
+f = file('./report1.xml', 'r')
 try:    
     informe = Report(xml=f.read())
     

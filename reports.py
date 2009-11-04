@@ -205,8 +205,6 @@ class PageFooter(NotPrintableItem):
         pf = etree.fromstring(valor)
         
         self.id = pf.find('id').text or ''
-        
-        # opciones
         self.body.xml = etree.tostring(pf.find('body'))
         
     xml = property(getxml, setxml)
@@ -215,12 +213,36 @@ class GroupHeader(NotPrintableItem):
     def __init__(self, id=None):
         NotPrintableItem.__init__(self)
         self.id = id
-        self.body = Body()
+        self.field = None
+        self.header = Header()
+        self.body = Body()        
         
     def write(self, conector):
         print 'GroupHeader "%s"' % self.id
 #        ReportItem.write(self)
         self.body.write(conector)
+        
+    def getxml(self):
+        valor = \
+            '<group_header>\n' + \
+            '  <id>' + (self.id or '') + '</id>\n' + \
+            '  <field>' + (self.field or '') + '</field>\n' + \
+            ReportItem.getxml(self) + \
+            self.header.xml + \
+            self.body.xml + \
+            '</group_header>\n'
+            
+        return valor
+    
+    def setxml(self, valor):
+        gh = etree.fromstring(valor)
+        
+        self.id = gh.find('id').text or ''
+        self.field = gh.find('field').text or ''
+        self.header.xml = etree.tostring(gh.find('header'))
+        self.body.xml = etree.tostring(gh.find('body'))
+        
+    xml = property(getxml, setxml)
     
 class GroupFooter(NotPrintableItem):
     def __init__(self, id=None):
@@ -232,6 +254,24 @@ class GroupFooter(NotPrintableItem):
         print 'GroupFooter "%s"' % self.id
 #        ReportItem.write(self)
         self.body.write(conector)
+
+    def getxml(self):
+        valor = \
+            '<group_footer>\n' + \
+            '  <id>' + (self.id or '') + '</id>\n' + \
+            ReportItem.getxml(self) + \
+            self.body.xml + \
+            '</group_footer>\n'
+            
+        return valor
+    
+    def setxml(self, valor):
+        gf = etree.fromstring(valor)
+        
+        self.id = gf.find('id').text or ''
+        self.body.xml = etree.tostring(gf.find('body'))
+        
+    xml = property(getxml, setxml)
         
 class Table(NotPrintableItem):
     def __init__(self):
@@ -284,7 +324,7 @@ class Detail(NotPrintableItem):
         detail_dict = {}
         detail_dict[self.master_field] = master_data[self.master_field]       
         
-        sql = self.table.query.replace('$$', '<')
+        sql = self.table.query #.replace('$$', '<')
         
         # parámetros 
         for par in params.params:
@@ -325,13 +365,15 @@ class Master(NotPrintableItem):
         self.id = id or ''
         self.table = Table()
         self.body = Body()
+        self.group_header = None
+        self.group_footer = None
         self.details = []
         
     def write(self, conector, params):
         print 'Master "%s"' % self.id
         #ReportItem.write(self)
         
-        sql = self.table.query.replace('$$', '<')
+        sql = self.table.query #.replace('$$', '<')
         
         # parámetros
         master_dict = {}
@@ -360,8 +402,11 @@ class Master(NotPrintableItem):
             '<master>\n' + \
             self.table.xml + \
             self.body.xml + \
+            (self.group_header.xml if self.group_header != None else '') + \
+            (self.group_footer.xml if self.group_footer != None else '') + \
             self.getxmldetails() + \
             '</master>\n'
+        
         return valor
     
     def setxml(self, valor):
@@ -370,6 +415,18 @@ class Master(NotPrintableItem):
         self.id = master.find('id').text or ''
         self.table.xml = etree.tostring(master.find('table'))
         self.body.xml = etree.tostring(master.find('body'))
+        
+        # group header
+        gh = master.find('group_header')
+        if gh != None:
+            self.group_header = GroupHeader()
+            self.group_header.xml = etree.tostring(gh)
+            
+        # group footer
+        gf = master.find('group_footer')
+        if gf != None:
+            self.group_footer = GroupFooter()
+            self.group_footer.xml = etree.tostring(gf)
         
         self.details = []
         for detalle in master.iterchildren('detail'):
@@ -390,8 +447,6 @@ class Text(PrintableItem):
         return '"%s" = "%s"' % (self.id, self.value or '')
         
     def write(self, master=None, detail=None, params=None):
-#        print 'Text "%s" = "%s" (%s)' % (self.id, self.value or '', self.field or '')
-#        print ReportItem.write(self)
 
         out = self.value
         if master != None:
@@ -407,7 +462,7 @@ class Text(PrintableItem):
         if params != None:
             for par in params.params:
                 k2 = '#%s#' % par[0]
-                out = out.replace(k2, par[1])    
+                out = out.replace(k2, par[1])
                 
         print out
 
@@ -480,7 +535,23 @@ class Body(NotPrintableItem):
                 mas.xml = etree.tostring(rep_item)
                 
     xml = property(getxml, setxml)
+    
+class Header(Body):
+    def __init__(self):
+        Body.__init__(self)
+        
+    def getxml(self):
+        valor = \
+            '<header>\n' + \
+            Body.getxmlitems(self) + \
+            '</header>\n'
             
+        return valor
+    
+    def setxml(self, valor):
+        Body.setxml(self, valor)        
+                
+    xml = property(getxml, setxml)            
 
 class ReportPage(object):
     def __init__(self, id, num=None):
