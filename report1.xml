@@ -72,8 +72,8 @@
                             </size>
                             <font>
                                 <name>Courier</name>
-                                <size>12</size>
-                                <color>BBBCBB</color>
+                                <size>9</size>
+                                <color>001100</color>
                                 <style></style>
                             </font>
                         </text>                        
@@ -93,7 +93,7 @@
                             <font>
                                 <name>Courier</name>
                                 <size>7</size>
-                                <color>00AA00</color>
+                                <color>BB11CC</color>
                                 <style></style>
                             </font>
                         </text>
