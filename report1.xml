@@ -21,7 +21,7 @@
         </style>
     </font>
     <params>
-        <param name="NUMERO_GRUPOS" type="int">200</param>
+        <param name="NUMERO_GRUPOS" type="int">50</param>
     </params>
     <report_title>
         <id>title_1</id>
@@ -51,12 +51,11 @@
                       JOIN cursos on cursos.id = grupos.id_cursos_cursodelgrupo
                       LEFT JOIN clientes on clientes.id = cursos.id_clientes_propietario
                       ORDER BY cursos.nombre
-                      --LIMIT %(NUMERO_GRUPOS)s
+                      LIMIT %(NUMERO_GRUPOS)s
                     </query>
                 </table>
-                <body></body>
                 <group_header>
-                    <id>ph_1</id>
+                    <id>gh_cursos</id>
                     <field>CURSOS_NOMBRE</field>
                     <header>
                         <text>
@@ -78,7 +77,11 @@
                             </font>
                         </text>                        
                     </header>
-                    <body>
+                </group_header>
+                <group_header>
+                    <id>gh_grupos</id>
+                    <field>GRUPOS_NOMBRE</field>
+                    <header>
                         <text>
                             <id>222</id>
                             <value>Grupo/ ID: #GRUPOS_ID# Nombre: #GRUPOS_NOMBRE#</value>
@@ -97,8 +100,28 @@
                                 <style></style>
                             </font>
                         </text>
-                    </body>
+                    </header>
                 </group_header>
+                <body>
+                    <text>
+                        <id>333</id>
+                        <value>BODY (#GRUPOS_NOMBRE#)</value>
+                        <position>
+                            <left>25</left>
+                            <top>2</top>
+                        </position>
+                        <size>
+                            <height>3</height>
+                            <width>0</width>
+                        </size>
+                        <font>
+                            <name>Times-Roman</name>
+                            <size>9</size>
+                            <color>C0C0C0</color>
+                            <style></style>
+                        </font>
+                    </text>
+                </body>                                         
             </master>
         </body>
     </page>

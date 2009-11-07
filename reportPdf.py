@@ -108,14 +108,17 @@ class ReportPdf(object):
         if page.page_footer != None:
             self.writePageFooter(page.page_footer)
     
-    def writeBody(self, body, y, mdata=None, ddata=None):
-        
-        # averiguar si todos los elementos son "Text" o no
-        only_text = True
-        for item in body.items:
-            if not isinstance(item, reports.Text):
-                only_text = False
-                break
+    def writeBody(self, body, y, mdata=None, ddata=None, acum=None):
+                
+        if acum is None:
+            # averiguar si todos los elementos son "Text" o no
+            only_text = True
+            for item in body.items:
+                if not isinstance(item, reports.Text):
+                    only_text = False
+                    break
+        else:
+            only_text = not acum
                     
         min_y = y
         new_page = False          
@@ -157,7 +160,7 @@ class ReportPdf(object):
             return min_y, new_page
                 
         else:
-#            print '***ACUMULATIVA***'            
+#            print '***ACUMULATIVA***'
             
             # acumulativa
             # la posición de un elemento depende de todos los anteriores
@@ -193,23 +196,38 @@ class ReportPdf(object):
             
         min_y = y
         new_page = False
-            
-        if master.group_header != None:
-            # con GroupHeader
-            self.writeGroupHeader(master.group_header, y, data=self.conector.conexion.execute(sql))        
-        else:
-            # sin GroupHeader
-            for mdata in self.conector.conexion.execute(sql):
-                y, new_page = self.writeBody(master.body, y, mdata)
-                if new_page: min_y = y
-                
-                for detalle in master.details:
-                    y, new_page = self.writeDetail(detalle, y, mdata)
+        values = [None] * len(master.group_headers)
+        for mdata in self.conector.conexion.execute(sql):
+
+            i = 0
+            for i in xrange(len(master.group_headers)):
+                if mdata[master.group_headers[i].field] != values[i]:
+                    y, new_page = self.writeBody(master.group_headers[i].header, y, mdata, acum=True)
+                    values[i] = mdata[master.group_headers[i].field]
                     
                     if not new_page:
                         if y < min_y: min_y = y
                     else:
                         min_y = y
+                
+                i += 1
+            
+            # master:body
+#            print 'master:body %f' % y
+            y, new_page = self.writeBody(master.body, y, mdata, acum=True)
+            if not new_page:
+                if y < min_y: min_y = y
+            else:
+                min_y = y
+            
+            # master:detail
+            for detalle in master.details:
+                y, new_page = self.writeDetail(detalle, y, mdata)
+                
+                if not new_page:
+                    if y < min_y: min_y = y
+                else:
+                    min_y = y
                 
         return min_y, new_page        
     
@@ -331,6 +349,9 @@ class ReportPdf(object):
             self.canvas.setFillColorRGB(r, g, b)
         
         self.canvas.drawString(text.left * mm, y, out)
+        
+#        self.canvas.setStrokeColorRGB(r, g, b)
+#        self.canvas.line(0, y, self.wd, y)
         
         # restaurar estado
         self.canvas.restoreState()

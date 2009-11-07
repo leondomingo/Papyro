@@ -215,7 +215,6 @@ class GroupHeader(NotPrintableItem):
         self.id = id
         self.field = None
         self.header = Header()
-        self.body = Body()        
         
     def write(self, conector):
         print 'GroupHeader "%s"' % self.id
@@ -229,7 +228,6 @@ class GroupHeader(NotPrintableItem):
             '  <field>' + (self.field or '') + '</field>\n' + \
             ReportItem.getxml(self) + \
             self.header.xml + \
-            self.body.xml + \
             '</group_header>\n'
             
         return valor
@@ -240,7 +238,6 @@ class GroupHeader(NotPrintableItem):
         self.id = gh.find('id').text or ''
         self.field = gh.find('field').text or ''
         self.header.xml = etree.tostring(gh.find('header'))
-        self.body.xml = etree.tostring(gh.find('body'))
         
     xml = property(getxml, setxml)
     
@@ -248,7 +245,7 @@ class GroupFooter(NotPrintableItem):
     def __init__(self, id=None):
         NotPrintableItem.__init__(self)
         self.id = id
-        self.body = Body()   
+        self.footer = Body()   
 
     def write(self, c, conector):
         print 'GroupFooter "%s"' % self.id
@@ -260,7 +257,7 @@ class GroupFooter(NotPrintableItem):
             '<group_footer>\n' + \
             '  <id>' + (self.id or '') + '</id>\n' + \
             ReportItem.getxml(self) + \
-            self.body.xml + \
+            self.footer.xml + \
             '</group_footer>\n'
             
         return valor
@@ -364,9 +361,9 @@ class Master(NotPrintableItem):
         NotPrintableItem.__init__(self)
         self.id = id or ''
         self.table = Table()
+        self.group_headers = []
+        self.group_footers = []
         self.body = Body()
-        self.group_header = None
-        self.group_footer = None
         self.details = []
         
     def write(self, conector, params):
@@ -396,14 +393,28 @@ class Master(NotPrintableItem):
             valor += dt.xml
             
         return valor
+    
+    def getxmlgroupheaders(self):
+        valor = ''
+        for gh in self.group_headers:
+            valor += gh.xml
+            
+        return valor
+    
+    def getxmlgroupfooters(self):
+        valor = ''
+        for gf in self.group_footers:
+            valor += gf.xml
+            
+        return valor
 
     def getxml(self):
         valor = \
             '<master>\n' + \
             self.table.xml + \
+            self.getxmlgroupheaders() + \
+            self.getxmlgroupfooters() + \
             self.body.xml + \
-            (self.group_header.xml if self.group_header != None else '') + \
-            (self.group_footer.xml if self.group_footer != None else '') + \
             self.getxmldetails() + \
             '</master>\n'
         
@@ -414,19 +425,24 @@ class Master(NotPrintableItem):
         
         self.id = master.find('id').text or ''
         self.table.xml = etree.tostring(master.find('table'))
-        self.body.xml = etree.tostring(master.find('body'))
         
-        # group header
-        gh = master.find('group_header')
-        if gh != None:
-            self.group_header = GroupHeader()
-            self.group_header.xml = etree.tostring(gh)
+        # group headers
+        self.group_headers = []
+        for gh in master.iterchildren('group_header'):
+            group_header = GroupHeader()
+            group_header.xml = etree.tostring(gh)
             
-        # group footer
-        gf = master.find('group_footer')
-        if gf != None:
-            self.group_footer = GroupFooter()
-            self.group_footer.xml = etree.tostring(gf)
+            self.group_headers.append(group_header)
+            
+        # group footers
+        self.group_footers = []
+        for gf in master.iterchildren('group_footer'):
+            group_footer = GroupFooter()
+            group_footer.xml = etree.tostring(gf)
+            
+            self.group_footers.append(group_footer)
+            
+        self.body.xml = etree.tostring(master.find('body'))
         
         self.details = []
         for detalle in master.iterchildren('detail'):
