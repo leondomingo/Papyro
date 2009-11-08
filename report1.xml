@@ -14,9 +14,9 @@
         </paper>
     </configuration>
     <font>
-        <name>Times-Roman</name>
+        <name>Helvetica</name>
         <size>10</size>
-        <color></color>
+        <color>000000</color>
         <style>
         </style>
     </font>
@@ -41,38 +41,43 @@
                         <field>GRUPOS_NOMBRE</field>
                     </fields>
                     <query>
-                      SELECT 
+                    SELECT
                         cursos.id as "CURSOS_ID",
                         cursos.nombre as "CURSOS_NOMBRE",
                         grupos.id as "GRUPOS_ID",
                         grupos.nombre as "GRUPOS_NOMBRE",
-                        coalesce(clientes.nombre, '') as "CLIENTES_NOMBRE"
-                      FROM grupos
-                      JOIN cursos on cursos.id = grupos.id_cursos_cursodelgrupo
-                      LEFT JOIN clientes on clientes.id = cursos.id_clientes_propietario
-                      ORDER BY cursos.nombre
-                      LIMIT %(NUMERO_GRUPOS)s
+                        coalesce(clientes.nombre, '') as "CLIENTES_NOMBRE",
+                        format_fecha('dd/mm/yyyy', grupos.fechainicio) as "GRUPOS_FECHAINICIO",
+                        format_fecha('dd/mm/yyyy', grupos.fechafin) as "GRUPOS_FECHAFIN"
+                    FROM grupos
+                    JOIN cursos on cursos.id = grupos.id_cursos_cursodelgrupo
+                    LEFT JOIN clientes on clientes.id = cursos.id_clientes_propietario
+                    ORDER BY cursos.nombre
+                    --LIMIT %(NUMERO_GRUPOS)s
                     </query>
                 </table>
                 <group_header>
                     <id>gh_cursos</id>
                     <field>CURSOS_NOMBRE</field>
+                    <options>
+                        <!--<print_on_new_page/>-->
+                    </options>
                     <header>
                         <text>
                             <id>111</id>
-                            <value>Curso/ ID: #CURSOS_ID# Nombre: #CURSOS_NOMBRE# (#CLIENTES_NOMBRE#)</value>
+                            <value>#CURSOS_NOMBRE# (#CLIENTES_NOMBRE#)</value>
                             <position>
                                 <left>5</left>
                                 <top>2</top>
                             </position>
                             <size>
-                                <height>3</height>
+                                <height>6</height>
                                 <width>0</width>
                             </size>
                             <font>
-                                <name>Courier</name>
+                                <name></name>
                                 <size>9</size>
-                                <color>001100</color>
+                                <color></color>
                                 <style></style>
                             </font>
                         </text>                        
@@ -81,10 +86,11 @@
                 <group_header>
                     <id>gh_grupos</id>
                     <field>GRUPOS_NOMBRE</field>
+                    <options></options>
                     <header>
                         <text>
                             <id>222</id>
-                            <value>Grupo/ ID: #GRUPOS_ID# Nombre: #GRUPOS_NOMBRE#</value>
+                            <value>#GRUPOS_NOMBRE#</value>
                             <position>
                                 <left>15</left>
                                 <top>2</top>
@@ -94,9 +100,27 @@
                                 <width>0</width>
                             </size>
                             <font>
-                                <name>Courier</name>
+                                <name></name>
                                 <size>7</size>
-                                <color>BB11CC</color>
+                                <color></color>
+                                <style></style>
+                            </font>
+                        </text>
+                        <text>
+                            <id>2232</id>
+                            <value>#GRUPOS_FECHAINICIO# - #GRUPOS_FECHAFIN#</value>
+                            <position>
+                                <left>15</left>
+                                <top>5</top>
+                            </position>
+                            <size>
+                                <height>3</height>
+                                <width>0</width>
+                            </size>
+                            <font>
+                                <name></name>
+                                <size>5</size>
+                                <color></color>
                                 <style></style>
                             </font>
                         </text>
@@ -105,23 +129,89 @@
                 <body>
                     <text>
                         <id>333</id>
-                        <value>BODY (#GRUPOS_NOMBRE#)</value>
+                        <value>Alumnos del grupo</value>
                         <position>
-                            <left>25</left>
-                            <top>2</top>
+                            <left>20</left>
+                            <top>0</top>
                         </position>
                         <size>
                             <height>3</height>
                             <width>0</width>
                         </size>
                         <font>
-                            <name>Times-Roman</name>
-                            <size>9</size>
-                            <color>C0C0C0</color>
+                            <name></name>
+                            <size>5</size>
+                            <color></color>
                             <style></style>
                         </font>
                     </text>
-                </body>                                         
+                    <line>
+                        <id>linea_1</id>
+                        <x1>20</x1>
+                        <y1>3</y1>
+                        <x2>150</x2>
+                        <y2>3</y2>
+                    </line>
+                </body>
+                <detail>
+                    <id>detail_1</id>
+                    <master_field>GRUPOS_ID</master_field>
+                    <table>
+                        <query>
+                            SELECT
+                                alias_alumno(alumnos.id) as "ALUMNOS_ALIAS",
+                                format_fecha('dd/mm/yyyy', aeg.fecha_inicio) as "AEG_FECHAINICIO",
+                                format_fecha('dd/mm/yyyy', aeg.fecha_fin) as "AEG_FECHAFIN"
+                            FROM alumnos
+                            JOIN alumnos_en_grupos aeg on 
+                                alumnos.id = aeg.id_alumnos_alumno and
+                                aeg.id_grupos_grupo = %(GRUPOS_ID)d
+                            ORDER BY aeg.fecha_inicio
+                        </query>
+                        <fields>
+                            <field>MATRICULAS_FECHAINICIO</field>
+                            <field>CURSOS_NOMBRE</field>
+                        </fields>
+                    </table>
+                    <body>
+                        <text>
+                            <id>txt_alumno</id>
+                            <value>#ALUMNOS_ALIAS#</value>
+                            <size>
+                                <height>3</height>
+                                <width>0</width>
+                            </size>
+                            <position>
+                                <left>20</left>
+                                <top>0</top>
+                            </position>
+                            <font>
+                                <name></name>
+                                <size>7</size>
+                                <color></color>
+                                <style></style>
+                            </font>                            
+                        </text>
+                        <text>
+                            <id>txt_alumno</id>
+                            <value>(desde #AEG_FECHAINICIO# hasta #AEG_FECHAFIN#)</value>
+                            <size>
+                                <height>3</height>
+                                <width>0</width>
+                            </size>
+                            <position>
+                                <left>80</left>
+                                <top>0</top>
+                            </position>
+                            <font>
+                                <name></name>
+                                <size>6</size>
+                                <color></color>
+                                <style></style>
+                            </font>                            
+                        </text>
+                    </body>
+                </detail>                
             </master>
         </body>
     </page>

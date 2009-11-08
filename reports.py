@@ -209,11 +209,31 @@ class PageFooter(NotPrintableItem):
         
     xml = property(getxml, setxml)
     
+class GroupHeaderOptions(object):
+    def __init__(self):
+        self.print_on_new_page = False
+        
+    def getxml(self):
+        valor = \
+            '<options>\n' + \
+            ('  <print_on_new_page/>\n' if self.print_on_new_page else '') + \
+            '</options>\n'
+                    
+        return valor
+    
+    def setxml(self, valor):
+        
+        gh_options = etree.fromstring(valor)
+        self.print_on_new_page = gh_options.find('print_on_new_page') != None
+        
+    xml = property(getxml, setxml)            
+    
 class GroupHeader(NotPrintableItem):
     def __init__(self, id=None):
         NotPrintableItem.__init__(self)
         self.id = id
         self.field = None
+        self.options = GroupHeaderOptions()
         self.header = Header()
         
     def write(self, conector):
@@ -226,6 +246,7 @@ class GroupHeader(NotPrintableItem):
             '<group_header>\n' + \
             '  <id>' + (self.id or '') + '</id>\n' + \
             '  <field>' + (self.field or '') + '</field>\n' + \
+            self.options.xml + \
             ReportItem.getxml(self) + \
             self.header.xml + \
             '</group_header>\n'
@@ -236,7 +257,8 @@ class GroupHeader(NotPrintableItem):
         gh = etree.fromstring(valor)
         
         self.id = gh.find('id').text or ''
-        self.field = gh.find('field').text or ''
+        self.field = gh.find('field').text or ''        
+        self.options.xml = etree.tostring(gh.find('options'))
         self.header.xml = etree.tostring(gh.find('header'))
         
     xml = property(getxml, setxml)
@@ -503,6 +525,44 @@ class Text(PrintableItem):
             
     xml = property(getxml, setxml)
 
+class Line(PrintableItem):
+    def __init__(self, id=None):
+        PrintableItem.__init__(self)        
+        self.id = id or ''
+        # en mm
+        self.x1 = 0
+        self.y1 = 0
+        self.x2 = 0
+        self.y2 = 0        
+        
+    def getxml(self):
+        valor = \
+            '<line>\n' + \
+            '  <id>' + self.id + '</id>\n' + \
+            '  <x1>' + str(self.x1) + '</x1>\n' + \
+            '  <y1>' + str(self.y1) + '</y1>\n' + \
+            '  <x2>' + str(self.x2) + '</x2>\n' + \
+            '  <y2>' + str(self.y2) + '</y2>\n' + \
+            ReportItem.getxml(self) + \
+            '</line>\n'
+            
+        return valor
+    
+    def setxml(self, valor):
+        
+        line = etree.fromstring(valor)
+        
+        self.id = line.find('id').text or ''
+        self.x1 = int(line.find('x1').text)
+        self.y1 = int(line.find('y1').text)
+        self.x2 = int(line.find('x2').text)
+        self.y2 = int(line.find('y2').text)
+            
+        ReportItem.setxml(self, valor)
+            
+    xml = property(getxml, setxml)
+
+
 class Body(NotPrintableItem):
     def __init__(self):
         NotPrintableItem.__init__(self)        
@@ -549,6 +609,13 @@ class Body(NotPrintableItem):
                 self.items.append(mas)
                 
                 mas.xml = etree.tostring(rep_item)
+                
+            elif rep_item.tag == 'line':
+                line = Line()
+                self.items.append(line)
+                
+                line.xml = etree.tostring(rep_item)
+
                 
     xml = property(getxml, setxml)
     

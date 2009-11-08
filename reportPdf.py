@@ -108,17 +108,14 @@ class ReportPdf(object):
         if page.page_footer != None:
             self.writePageFooter(page.page_footer)
     
-    def writeBody(self, body, y, mdata=None, ddata=None, acum=None):
+    def writeBody(self, body, y, mdata=None, ddata=None):
                 
-        if acum is None:
-            # averiguar si todos los elementos son "Text" o no
-            only_text = True
-            for item in body.items:
-                if not isinstance(item, reports.Text):
-                    only_text = False
-                    break
-        else:
-            only_text = not acum
+        # averiguar si todos los elementos son "Text" o no
+        only_text = True
+        for item in body.items:
+            if not isinstance(item, reports.Text):
+                only_text = False
+                break
                     
         min_y = y
         new_page = False          
@@ -149,12 +146,11 @@ class ReportPdf(object):
                 new_page = True
                 self.canvas.showPage()
                 self.newPage()
-                y = 0
-                min_y = y
+                min_y = 0
             
                 # en la siguiente página
                 for item, y in text_items_next_page:
-                    self.writeText(item, y, mdata, ddata)
+                    y = self.writeText(item, y, mdata, ddata)[0]
                     if y < min_y: min_y = y
                 
             return min_y, new_page
@@ -173,6 +169,10 @@ class ReportPdf(object):
                 # Text
                 elif isinstance(item, reports.Text):
                     y, new_page = self.writeText(item, y, mdata, ddata)
+                
+                # Line
+#                elif isinstance(item, reports.Line):
+#                    y = self.writeLine(item, y)
                 
                 if not new_page:
                     if y < min_y: min_y = y
@@ -194,6 +194,7 @@ class ReportPdf(object):
         if master_dict != {}:
             sql %= master_dict
             
+        primero = True
         min_y = y
         new_page = False
         values = [None] * len(master.group_headers)
@@ -202,7 +203,15 @@ class ReportPdf(object):
             i = 0
             for i in xrange(len(master.group_headers)):
                 if mdata[master.group_headers[i].field] != values[i]:
-                    y, new_page = self.writeBody(master.group_headers[i].header, y, mdata, acum=True)
+                    if not primero and master.group_headers[i].options.print_on_new_page:
+                        self.canvas.showPage()
+                        self.newPage()
+                        y = 0
+                        min_y = y
+                        
+                    primero = False
+                        
+                    y, new_page = self.writeBody(master.group_headers[i].header, y, mdata)
                     values[i] = mdata[master.group_headers[i].field]
                     
                     if not new_page:
@@ -213,8 +222,7 @@ class ReportPdf(object):
                 i += 1
             
             # master:body
-#            print 'master:body %f' % y
-            y, new_page = self.writeBody(master.body, y, mdata, acum=True)
+            y, new_page = self.writeBody(master.body, y, mdata)
             if not new_page:
                 if y < min_y: min_y = y
             else:
@@ -347,6 +355,12 @@ class ReportPdf(object):
             g = int(text.font.color[2:4], 16) / 255.0
             b = int(text.font.color[4:6], 16) / 255.0
             self.canvas.setFillColorRGB(r, g, b)
+            
+        elif self.report.font.color != None:
+            r = int(self.report.font.color[0:2], 16) / 255.0
+            g = int(self.report.font.color[2:4], 16) / 255.0
+            b = int(self.report.font.color[4:6], 16) / 255.0
+            self.canvas.setFillColorRGB(r, g, b)
         
         self.canvas.drawString(text.left * mm, y, out)
         
@@ -358,5 +372,19 @@ class ReportPdf(object):
         
         return y, new_page
     
-    
+    def writeLine(self, line, y):
         
+        print 'Line: x1=%d, y1=%d, x2=%d, y2=%d' % \
+                (line.x1, line.y1, line.x2, line.y2)
+        
+        self.canvas.saveState()
+        self.canvas.translate(0, y)
+        self.canvas.line(line.x1, line.y1, line.x2, line.y2)
+        self.canvas.restoreState()
+        
+        min_y = y
+        if line.y1 < min_y: min_y = line.y1
+        if line.y2 < min_y: min_y = line.y2
+        
+        return min_y
+    
