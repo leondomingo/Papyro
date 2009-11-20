@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<report>
+    <name>Resumen mensual para profesores</name>
+    <configuration>
+        <paper>
+            <size>A4</size>
+            <margin>
+                <left>15</left>
+                <right>15</right>
+                <top>15</top>
+                <bottom>15</bottom>
+            </margin>
+            <orientation>portrait</orientation>
+        </paper>
+    </configuration>
+    <font>
+        <name>Helvetica</name>
+        <size>10</size>
+        <color>000000</color>
+        <style>
+        </style>
+    </font>
+    <params>
+        <param name="PROFESOR" type="int">50</param>
+    </params>
+    <report_title>
+        <id></id>
+        <body></body>
+    </report_title>
+    <page>
+        <id>page_1</id>
+        <number>1</number>
+        <body>
+            <master>
+                <id>master_grupos</id>
+                <table>
+                    <fields></fields>
+                    <query>
+                    SELECT                        
+                        DISTINCT grupos.id as "GRUPOS_ID",
+                        trim(grupos.nombre) as "GRUPOS_NOMBRE",
+                        format_fecha('dd/mm/yyyy', grupos.fechainicio) as "GRUPOS_FECHAINICIO",
+                        format_fecha('dd/mm/yyyy', grupos.fechafin) as "GRUPOS_FECHAFIN"
+                    FROM grupos
+                    JOIN horario_del_grupo on horario_del_grupo.id_grupos_grupo = grupos.id
+                    JOIN clases_de_grupos on horario_del_grupo.id = clases_de_grupos.id_horario_del_grupo_horario
+                    JOIN tipos_de_cancelacion on tipos_de_cancelacion.id = clases_de_grupos.id_tipos_de_cancelacion_tipo_de_cancelacion
+                    WHERE clases_de_grupos.id_personal_profesor = %(PROFESOR)s
+                    ORDER BY "GRUPOS_NOMBRE"
+                    </query>
+                </table>
+                <body>
+                    <text>
+                        <id></id>
+                        <value>#GRUPOS_NOMBRE# de #GRUPOS_FECHAINICIO# a #GRUPOS_FECHAFIN#</value>
+                    </text>
+                    <text>
+                        <id></id>
+                        <value>    Horarios</value>
+                    </text>
+                <detail>
+                    <id>detail_horarios</id>
+                    <master_field>GRUPOS_ID</master_field>
+                    <table>
+                        <query>
+                            SELECT
+                                horario_del_grupo.id as "HORARIOS_ID",
+                                resumen(horario_del_grupo.id) as "RESUMEN"
+                            FROM horario_del_grupo
+                            WHERE horario_del_grupo.id_grupos_grupo = %(GRUPOS_ID)s
+                            ORDER BY horario_del_grupo.fechainicio
+                        </query>
+                        <fields></fields>
+                    </table>
+                    <body>
+                        <text>
+                            <id></id>
+                            <value>      #HORARIOS_ID#: #RESUMEN#</value>
+                        </text>
+                    </body>
+                </detail>
+                    <text>
+                        <id></id>
+                        <value>    Alumnos</value>
+                    </text>                
+                <detail>
+                    <id>detail_alumnos</id>
+                    <master_field>GRUPOS_ID</master_field>
+                    <table>
+                        <query>
+                            SELECT
+                                alias_alumno(alumnos.id) as "ALUMNOS_ALIAS",
+                                format_fecha('dd/mm/yyyy', aeg.fecha_inicio) as "AEG_FECHAINICIO",
+                                format_fecha('dd/mm/yyyy', aeg.fecha_fin) as "AEG_FECHAFIN"
+                            FROM alumnos
+                            JOIN alumnos_en_grupos aeg on 
+                                alumnos.id = aeg.id_alumnos_alumno and
+                                aeg.id_grupos_grupo = %(GRUPOS_ID)d
+                            ORDER BY "ALUMNOS_ALIAS"
+                        </query>
+                        <fields></fields>
+                    </table>
+                    <body>
+                        <text>
+                            <id></id>
+                            <value>      #ALUMNOS_ALIAS# (#AEG_FECHAINICIO# - #AEG_FECHAFIN#)</value>
+                        </text>
+                    </body>
+                </detail>
+                </body>                
+            </master>
+        </body>
+    </page>
+</report>

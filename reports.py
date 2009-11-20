@@ -610,6 +610,12 @@ class Body(NotPrintableItem):
                 
                 mas.xml = etree.tostring(rep_item)
                 
+            elif rep_item.tag == 'detail':
+                det = Detail()
+                self.items.append(det)
+                
+                det.xml = etree.tostring(rep_item)
+                
             elif rep_item.tag == 'line':
                 line = Line()
                 self.items.append(line)
