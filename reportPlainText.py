@@ -2,6 +2,7 @@
 
 import reports
 import cStringIO
+import os.path
 
 class ReportPlainText(object):
     
@@ -11,17 +12,18 @@ class ReportPlainText(object):
         self.ftext = cStringIO.StringIO()
         self.debug = False
         
-    def writeReport(self, text_file=None, params=None, debug=False):
+    def writeReport(self, text_file=None, report_path=None, params=None, debug=False):
         
         self.debug = debug
+        self.base_path = os.path.dirname(report_path or '.')
         
-        param_names = [param[0] for param in self.report.params.params]
-            
-        # params
+        # params        
+        self.param_names = [param[0] for param in self.report.params.params]
+        
         if params != None:
             for p in params:
-                if p[0] in param_names:
-                    i = param_names.index(p[0])
+                if p[0] in self.param_names:
+                    i = self.param_names.index(p[0])
                     self.report.params.params[i] = p
            
         self.cur_page = self.report.pages[0]
@@ -156,6 +158,21 @@ class ReportPlainText(object):
     def writeGroupFooter(self, group_footer):
         pass
     
+    def writeSubReport(self, subreport):
+        f_xml = file(os.path.join(self.base_path, subreport.name) + '.xml', 'r')
+        try:
+            informe = reports.Report(xml=f_xml.read())
+            
+            parametros = []
+            for subparam_name in subreport.params.params: 
+                i = self.param_names.index(subparam_name)
+                parametros.append(self.report.params.params[i])
+            
+            subinforme = ReportPlainText(informe, self.conector)
+            return subinforme.writeReport(params=parametros, debug=self.debug)
+        finally:
+            f_xml.close()                            
+    
     def writeText(self, text, mdata=None, ddata=None):
         
         out = text.value
@@ -163,19 +180,24 @@ class ReportPlainText(object):
         # master
         if mdata != None:
             for k in mdata.keys():
-                k2 = '#%s#' % str(k)
-                out = out.replace(k2, str(mdata[k]))
+                variable = '#%s#' % str(k)
+                out = out.replace(variable, str(mdata[k]))
 
         # detail
         if ddata != None:
             for k in ddata.keys():
-                k2 = '#%s#' % str(k)
-                out = out.replace(k2, str(ddata[k]))
+                variable = '#%s#' % str(k)
+                out = out.replace(variable, str(ddata[k]))
 
         # params
         for par in self.report.params.params:
-            k2 = '#%s#' % par[0]
-            out = out.replace(k2, par[1])
+            variable = '#%s#' % par[0]
+            out = out.replace(variable, par[1])
+            
+        # subreports
+        for subreport in self.report.subreports:
+            variable = '#SUBREPORT %s#' % subreport.id 
+            out = out.replace(variable, self.writeSubReport(subreport))
         
         # imprimir contenido por "stdout"
         if self.debug: print out
@@ -183,8 +205,7 @@ class ReportPlainText(object):
         self.ftext.write(out + '\n')
         
     def writeTextFile(self, textfile, mdata=None, ddata=None):
-        
-        ft = file(textfile.path, 'r')
+        ft = file(os.path.join(self.base_path, textfile.name), 'r')
         try:
             out = ft.read()
         finally:
@@ -193,19 +214,24 @@ class ReportPlainText(object):
         # master
         if mdata != None:
             for k in mdata.keys():
-                k2 = '#%s#' % str(k)
-                out = out.replace(k2, str(mdata[k]))
+                variable = '#%s#' % str(k)
+                out = out.replace(variable, str(mdata[k]))
 
         # detail
         if ddata != None:
             for k in ddata.keys():
-                k2 = '#%s#' % str(k)
-                out = out.replace(k2, str(ddata[k]))
+                variable = '#%s#' % str(k)
+                out = out.replace(variable, str(ddata[k]))
 
         # params
         for par in self.report.params.params:
-            k2 = '#%s#' % par[0]
-            out = out.replace(k2, par[1])
+            variable = '#%s#' % par[0]
+            out = out.replace(variable, par[1])
+            
+        # subreports
+        for subreport in self.report.subreports:
+            variable = '#SUBREPORT %s#' % subreport.id 
+            out = out.replace(variable, self.writeSubReport(subreport))
         
         # imprimir contenido por "stdout"
         if self.debug: print out

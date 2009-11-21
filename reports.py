@@ -64,6 +64,7 @@ class Parameters(object):
             self.params.append((param.attrib['name'], param.text, param.attrib['type']))
             
     xml = property(getxml, setxml)
+    
 
 class ReportItem(object):
     def __init__(self):
@@ -566,13 +567,13 @@ class TextFile(PrintableItem):
     def __init__(self, id=None):
         PrintableItem.__init__(self)
         self.id = id
-        self.path = None
+        self.name = None
         
     def getxml(self):
         value = \
             '<text_file>\n' + \
             '  <id>' + (self.id or '') + '</id>\n' + \
-            '  <path>' + (self.path or '') + '</path>\n' + \
+            '  <name>' + (self.name or '') + '</name>\n' + \
             '</text_file>'
             
         return value
@@ -582,22 +583,49 @@ class TextFile(PrintableItem):
         tf = etree.fromstring(value)
         
         self.id = tf.find('id').text or ''
-        self.path = tf.find('path').text or ''
+        self.name = tf.find('name').text or ''
         
-    xml = property(getxml, setxml)    
+    xml = property(getxml, setxml)
     
-class Subreport(NotPrintableItem):
+class SubParameters(object):
+    def __init__(self):
+        self.params = []
+        
+    def getxml(self):
+        valor = '<params>\n'
+        
+        for par in self.params:
+            # 0 - name
+            # 1 - (valor)
+            # 2 - type
+            valor += '<param>' + par + '</param>\n'
+                            
+        valor += '</params>\n'
+        
+        return valor
+        
+    def setxml(self, valor):        
+        parametros = etree.fromstring(valor)        
+        
+        self.params = []
+        for param in parametros.iterchildren('param'):
+            self.params.append(param.text)
+            
+    xml = property(getxml, setxml)
+        
+    
+class SubReport(NotPrintableItem):
     def __init__(self, id=None):
         NotPrintableItem.__init__(self)
         self.id = id
-        self.subreport_file = None
-        self.params = Parameters()
+        self.name = None
+        self.params = SubParameters()
         
     def getxml(self):
         value = \
             '<subreport>\n' + \
             '  <id>' + self.id or '' '</id>\n' + \
-            '  <subreport_file>' + self.subreport_file or '' + '</subreport_file>\n' + \
+            '  <name>' + self.name or '' + '</path>\n' + \
             self.params.xml + \
             '</subreport>\n'        
         
@@ -608,7 +636,7 @@ class Subreport(NotPrintableItem):
         subinforme = etree.fromstring(value)
         
         self.id = subinforme.find('id').text or ''
-        self.subreport_file = subinforme.find('subreport_file').text or ''
+        self.name = subinforme.find('name').text or ''
         self.params.xml = etree.tostring(subinforme.find('params')) 
     
     xml = property(getxml, setxml)
@@ -796,6 +824,7 @@ class Report(object):
         self.margin_bottom = None
         self.font = Font()
         self.params = Parameters()
+        self.subreports = []
         
         self.xml = xml
         
@@ -806,6 +835,13 @@ class Report(object):
         valor = ''
         for page in self.pages:
             valor += page.xml
+            
+        return valor
+    
+    def getxmlsubreports(self):
+        valor = ''
+        for sub in self.subreports:
+            valor += sub.xml
             
         return valor
         
@@ -829,6 +865,7 @@ class Report(object):
             self.font.xml + \
             self.params.xml + \
             self.title.xml + \
+            self.subreports.xml + \
             self.getxmlpages() + \
             '</report>\n'
             
@@ -849,14 +886,21 @@ class Report(object):
         self.paper_orientation = paper.find('orientation').text.lower()
         
         margin = paper.find('margin')
-        self.margin_left = float(margin.find('left').text)
-        self.margin_right = float(margin.find('right').text)
-        self.margin_top = float(margin.find('top').text)
-        self.margin_bottom = float(margin.find('bottom').text)
+        self.margin_left = float(margin.find('left').text or 0.0)
+        self.margin_right = float(margin.find('right').text or 0.0)
+        self.margin_top = float(margin.find('top').text or 0.0)
+        self.margin_bottom = float(margin.find('bottom').text or 0.0)
         
         rt = informe.find('report_title')
         if rt != None:
             self.title.xml = etree.tostring(informe.find('report_title'))
+            
+        self.subreports = []
+        for subinforme in informe.iterchildren('subreport'):
+            subreport = SubReport()
+            subreport.xml = etree.tostring(subinforme)
+            
+            self.subreports.append(subreport)
             
         self.pages = []
         for pagina in informe.iterchildren('page'):
