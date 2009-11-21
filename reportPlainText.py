@@ -59,7 +59,7 @@ class ReportPlainText(object):
 #            self.writePageHeader(page.page_header, 0)
             
         # body
-        self.writeBody(page.body, 0)
+        self.writeBody(page.body)
         
         # page_footer
         if page.page_footer != None:
@@ -78,6 +78,10 @@ class ReportPlainText(object):
             # Text
             elif isinstance(item, reports.Text):
                 self.writeText(item, mdata, ddata)
+                
+            # TextFile
+            elif isinstance(item, reports.TextFile):
+                self.writeTextFile(item, mdata, ddata)                
             
     def writeMaster(self, master):
         
@@ -129,6 +133,8 @@ class ReportPlainText(object):
                 
         sql %= detail_dict
         
+        if self.debug: print sql
+        
         for ddata in self.conector.conexion.execute(sql):
             self.writeBody(detail.body, mdata, ddata)
     
@@ -175,3 +181,33 @@ class ReportPlainText(object):
         if self.debug: print out
         
         self.ftext.write(out + '\n')
+        
+    def writeTextFile(self, textfile, mdata=None, ddata=None):
+        
+        ft = file(textfile.path, 'r')
+        try:
+            out = ft.read()
+        finally:
+            ft.close()
+        
+        # master
+        if mdata != None:
+            for k in mdata.keys():
+                k2 = '#%s#' % str(k)
+                out = out.replace(k2, str(mdata[k]))
+
+        # detail
+        if ddata != None:
+            for k in ddata.keys():
+                k2 = '#%s#' % str(k)
+                out = out.replace(k2, str(ddata[k]))
+
+        # params
+        for par in self.report.params.params:
+            k2 = '#%s#' % par[0]
+            out = out.replace(k2, par[1])
+        
+        # imprimir contenido por "stdout"
+        if self.debug: print out
+        
+        self.ftext.write(out + '\n')        

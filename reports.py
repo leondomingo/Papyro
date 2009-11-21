@@ -561,7 +561,57 @@ class Line(PrintableItem):
         ReportItem.setxml(self, valor)
             
     xml = property(getxml, setxml)
-
+    
+class TextFile(PrintableItem):
+    def __init__(self, id=None):
+        PrintableItem.__init__(self)
+        self.id = id
+        self.path = None
+        
+    def getxml(self):
+        value = \
+            '<text_file>\n' + \
+            '  <id>' + (self.id or '') + '</id>\n' + \
+            '  <path>' + (self.path or '') + '</path>\n' + \
+            '</text_file>'
+            
+        return value
+    
+    def setxml(self, value):
+        
+        tf = etree.fromstring(value)
+        
+        self.id = tf.find('id').text or ''
+        self.path = tf.find('path').text or ''
+        
+    xml = property(getxml, setxml)    
+    
+class Subreport(NotPrintableItem):
+    def __init__(self, id=None):
+        NotPrintableItem.__init__(self)
+        self.id = id
+        self.subreport_file = None
+        self.params = Parameters()
+        
+    def getxml(self):
+        value = \
+            '<subreport>\n' + \
+            '  <id>' + self.id or '' '</id>\n' + \
+            '  <subreport_file>' + self.subreport_file or '' + '</subreport_file>\n' + \
+            self.params.xml + \
+            '</subreport>\n'        
+        
+        return value
+    
+    def setxml(self, value):
+        
+        subinforme = etree.fromstring(value)
+        
+        self.id = subinforme.find('id').text or ''
+        self.subreport_file = subinforme.find('subreport_file').text or ''
+        self.params.xml = etree.tostring(subinforme.find('params')) 
+    
+    xml = property(getxml, setxml)
 
 class Body(NotPrintableItem):
     def __init__(self):
@@ -603,6 +653,12 @@ class Body(NotPrintableItem):
                 self.items.append(txt)
                 
                 txt.xml = etree.tostring(rep_item)
+                
+            elif rep_item.tag == 'text_file':
+                txtf = TextFile()
+                self.items.append(txtf)
+                
+                txtf.xml = etree.tostring(rep_item)
                 
             elif rep_item.tag == 'master':
                 mas = Master()
