@@ -4,6 +4,8 @@ import reports
 import cStringIO
 import os.path
 
+CONSTANTES = {'CR': '\n'}
+
 class ReportPlainText(object):
     
     def __init__(self, report, conector):
@@ -137,7 +139,17 @@ class ReportPlainText(object):
         
         if self.debug: print sql
         
-        for ddata in self.conector.conexion.execute(sql):
+        data = self.conector.conexion.execute(sql)
+        
+        # detail:header
+        if detail.header != None:
+            if data.rowcount > 0:
+                self.writeBody(detail.header.body, mdata)            
+            else:
+                if detail.header.print_if_detail_is_empty:
+                    self.writeBody(detail.header.body, mdata)
+        
+        for ddata in data:
             self.writeBody(detail.body, mdata, ddata)
     
     def writePageHeader(self, page_header):
@@ -176,6 +188,11 @@ class ReportPlainText(object):
     def writeText(self, text, mdata=None, ddata=None):
         
         out = text.value
+
+        # constantes
+        for k, v in CONSTANTES.iteritems():
+            variable = '#%s#' % k
+            out = out.replace(variable, v)
         
         # master
         if mdata != None:
@@ -210,6 +227,11 @@ class ReportPlainText(object):
             out = ft.read()
         finally:
             ft.close()
+            
+        # constantes
+        for k, v in CONSTANTES.iteritems():
+            variable = '#%s#' % k
+            out = out.replace(variable, v)            
         
         # master
         if mdata != None:

@@ -7,21 +7,29 @@ from unidadescompartidas import conexion
 #from reportlab.pdfgen import canvas
 #from reportlab.lib.pagesizes import A4
 from libpy.implementation.enviaremail import enviar_email
+import os.path
 
 #f = file('./report1.xml', 'r')
 #f = file('D:/workspace/tandemdev/tandem/informes/resumen_mensual.xml', 'r')
-f = file('./mail_resumen_mensual.xml', 'r')
+conector = conexion()
+
+#report_path = os.path.join(conector.datosconexion.getVariable('ruta_informes'), 
+#                           'MailResumenMensual/MailResumenMensual.xml')
+
+report_path = os.path.join(conector.datosconexion.getVariable('ruta_informes'), 
+                           'MailResumenMensual/ResumenMensual.xml')
+
+f = file(report_path, 'r')
 try:    
-    informe = Report(xml=f.read())
-    
+    informe = Report(xml=f.read())    
 #    print informe.xml
     
-    conector = conexion()
 #    pdf = ReportPdf(informe, conector)    
 #    pdf.writeReport(pdf_file='./hello.pdf', params=[('NUMERO_ALUMNOS', '100', 'int')])
 
     txt = ReportPlainText(informe, conector)
-    resultado = txt.writeReport(params=[('P_MES', 'Noviembre', 'str'),
+    resultado = txt.writeReport(report_path=report_path,
+                                params=[('P_MES', 'Noviembre', 'str'),
                                         ('P_MONTH', 'November', 'str'),
                                         ('P_FECHA_LIMITE', '2 de Dicimebre', 'str'),
                                         ('P_DEADLINE', 'December 2', 'str'),
@@ -30,10 +38,10 @@ try:
                                         ('P_PROFESOR', '1', 'int'),
                                         ('P_FECHA_INICIO', '01/11/2009', 'date'),
                                         ('P_FECHA_FIN', '23/11/2009', 'date')], debug=False)
-    #print resultado
+    print resultado
     
-    print enviar_email('tengounplanb@gmail.com', ['leon.domingo@ender.es'],
-                       'Resumen mensual', resultado,
-                       'smtp.gmail.com', 'tengounplanb@gmail.com', 'nitelite01')
+#    print enviar_email('atenea@tandem-madrid.com', ['leon.domingo@ender.es'],
+#                       'Resumen mensual', resultado,
+#                       'smtp.dipro.es', 'atenea@tandem-madrid.com', 'A1s2d3f4')
 finally:
     f.close()

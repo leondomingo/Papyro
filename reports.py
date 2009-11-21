@@ -328,35 +328,41 @@ class Table(NotPrintableItem):
         
     xml = property(getxml, setxml)
     
+class HeaderDetail(NotPrintableItem):
+    def __init__(self, id=None):
+        NotPrintableItem.__init__(self)
+        self.id = id
+        self.print_if_detail_is_empty = False
+        self.body = Body()
+        
+    def getxml(self):
+        value = \
+            '<header>\n' + \
+            ('  <print_if_detail_is_empty/>\n' if self.print_if_detail_is_empty else '') + \
+            self.body.xml + \
+            '</header>\n'
+            
+        return value
+    
+    def setxml(self, value):
+        
+        hd = etree.fromstring(value)
+        
+        self.id = hd.find('id').text or ''
+        self.print_if_detail_is_empty = hd.find('print_if_detail_is_empty') != None
+        
+        self.body.xml = etree.tostring(hd.find('body'))
+    
+    xml = property(getxml, setxml)
+    
 class Detail(NotPrintableItem):
     def __init__(self, id=None):
         NotPrintableItem.__init__(self)        
         self.id = id
         self.master_field = None
         self.table = Table()
+        self.header = None
         self.body = Body()
-        
-    def write(self, conector, master_data, params):
-        print 'Detail "%s" (%s)' % (self.id, self.master_field)
-#        ReportItem.write(self)
-
-        # tratar SQL
-        detail_dict = {}
-        detail_dict[self.master_field] = master_data[self.master_field]       
-        
-        sql = self.table.query #.replace('$$', '<')
-        
-        # parámetros 
-        for par in params.params:
-            if sql.find(par[0]):
-                detail_dict[par[0]] = par[1]
-                
-        sql %= detail_dict
-        
-        for detail_data in conector.conexion.execute(sql):
-            # TODO: Imprimir detalle si está vacío (opcional)
-            if detail_data != None:
-                self.body.write(conector, master_data, detail_data)
         
     def getxml(self):
         valor = \
@@ -364,6 +370,7 @@ class Detail(NotPrintableItem):
             '  <id>' + (self.id or '') + '</id>\n' + \
             '  <master_field>' + (self.master_field or '') + '</master_field>\n' + \
             self.table.xml + \
+            (self.header.xml if self.header != None else '') + \
             self.body.xml + \
             '</detail>\n'
             
@@ -375,6 +382,13 @@ class Detail(NotPrintableItem):
         self.id = detail.find('id').text or ''
         self.master_field = detail.find('master_field').text
         self.table.xml = etree.tostring(detail.find('table'))
+        
+        self.header = None
+        h = detail.find('header')
+        if h != None:
+            self.header = HeaderDetail()
+            self.header.xml = etree.tostring(h)
+        
         self.body.xml = etree.tostring(detail.find('body'))
     
     xml = property(getxml, setxml)
@@ -389,27 +403,6 @@ class Master(NotPrintableItem):
         self.body = Body()
         self.details = []
         
-    def write(self, conector, params):
-        print 'Master "%s"' % self.id
-        #ReportItem.write(self)
-        
-        sql = self.table.query #.replace('$$', '<')
-        
-        # parámetros
-        master_dict = {}
-        for par in params.params:
-            if sql.find(par[0]):
-                master_dict[par[0]] = par[1]
-                
-        if master_dict != {}:
-            sql %= master_dict            
-        
-        for master_data in conector.conexion.execute(sql):
-            self.body.write(conector, master_data, params=params)
-            
-            for detalle in self.details:
-                detalle.write(conector, master_data, params)
-                
     def getxmldetails(self):
         valor = ''
         for dt in self.details:
@@ -865,7 +858,7 @@ class Report(object):
             self.font.xml + \
             self.params.xml + \
             self.title.xml + \
-            self.subreports.xml + \
+            self.getxmlsubreports() + \
             self.getxmlpages() + \
             '</report>\n'
             
