@@ -35,7 +35,7 @@ try:
                                         ('P_DEADLINE', 'December 2', 'str'),
                                         ('P_HOY', '23 de Noviembre', 'str'),
                                         ('P_TODAY', 'November 23', 'str'),
-                                        ('P_PROFESOR', '1', 'int'),
+                                        ('P_PROFESOR', '2', 'int'),
                                         ('P_FECHA_INICIO', '01/11/2009', 'date'),
                                         ('P_FECHA_FIN', '23/11/2009', 'date')], debug=False)
     print resultado

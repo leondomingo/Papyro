@@ -74,11 +74,6 @@ class ReportItem(object):
         self.width = 0
         self.font = Font()
     
-    def write(self):
-        print '(%(lf)d, %(tp)d) (%(hg)d, %(wd)d) ' % \
-                    dict(lf=self.left or 0, tp=self.top or 0, 
-                         hg=self.height or 0, wd=self.width or 0)
-                    
     def getxml(self):
         valor = \
             '  <position>\n' + \
@@ -124,9 +119,6 @@ class PageHeaderOptions(object):
     def __init__(self):
         self.print_on_first_page = True
         
-    def write(self, conector):
-        pass
-        
     def getxml(self):
         valor = '<options>\n'
         
@@ -151,11 +143,6 @@ class PageHeader(NotPrintableItem):
         self.id = id
         self.body = Body()
         self.options = PageHeaderOptions
-        
-    def write(self, conector, params=None):
-        print 'PageHeader "%s"' % self.id
-#        ReportItem.write(self)
-        self.body.write(conector, params=params)
         
     def getxml(self):
         valor = \
@@ -187,11 +174,6 @@ class PageFooter(NotPrintableItem):
         self.id = id
         self.body = Body()
     
-    def write(self, conector, params=None):
-        print 'PageFooter "%s"' % self.id
-#        ReportItem.write(self)
-        self.body.write(conector, params=params)
-        
     def getxml(self):
         valor = \
             '<page_footer>\n' + \
@@ -237,11 +219,6 @@ class GroupHeader(NotPrintableItem):
         self.options = GroupHeaderOptions()
         self.header = Header()
         
-    def write(self, conector):
-        print 'GroupHeader "%s"' % self.id
-#        ReportItem.write(self)
-        self.body.write(conector)
-        
     def getxml(self):
         valor = \
             '<group_header>\n' + \
@@ -269,11 +246,6 @@ class GroupFooter(NotPrintableItem):
         NotPrintableItem.__init__(self)
         self.id = id
         self.footer = Body()   
-
-    def write(self, c, conector):
-        print 'GroupFooter "%s"' % self.id
-#        ReportItem.write(self)
-        self.body.write(conector)
 
     def getxml(self):
         valor = \
@@ -478,26 +450,6 @@ class Text(PrintableItem):
     def __repr__(self):
         return '"%s" = "%s"' % (self.id, self.value or '')
         
-    def write(self, master=None, detail=None, params=None):
-
-        out = self.value
-        if master != None:
-            for k in master.keys():
-                k2 = '#' + str(k) + '#'
-                out = out.replace(k2, str(master[k]))
-                
-        if detail != None:
-            for k in detail.keys():
-                k2 = '#' + str(k) + '#'
-                out = out.replace(k2, str(detail[k]))
-                
-        if params != None:
-            for par in params.params:
-                k2 = '#%s#' % par[0]
-                out = out.replace(k2, par[1])
-                
-        print out
-
     def getxml(self):
         valor = \
             '<text>\n' + \
@@ -639,15 +591,6 @@ class Body(NotPrintableItem):
         NotPrintableItem.__init__(self)        
         self.items = [] # lista de "ReportItem"
         
-    def write(self, conector, master=None, detail=None, params=None):
-        
-        for item in self.items:
-            if isinstance(item, Master):
-                item.write(conector, params)
-            else:
-                # Label, Text, etc
-                item.write(master, detail, params)
-            
     def getxmlitems(self):
         valor = ''
         for item in self.items:
@@ -730,17 +673,6 @@ class ReportPage(object):
     def __repr__(self):
         return '"%s" (page=%d)' % (self.id, self.num)
         
-    def write(self, conector, params):
-        print 'ReportPage "%s" %d' % (self.id, self.num)
-        
-        if self.page_header != None:
-            self.page_header.write(conector, params=params)
-            
-        self.body.write(conector, params=params)
-        
-        if self.page_footer != None:
-            self.page_footer.write(conector, params=params)
-        
     def getxml(self):
         valor = \
             '<page>\n' + \
@@ -781,10 +713,6 @@ class ReportTitle(NotPrintableItem):
         
     def __repr__(self):
         return '"%s"' % self.id
-        
-    def write(self, conector):
-        print 'ReportTitle "%s"' % self.id
-        self.body.write(conector)
         
     def getxml(self):
         valor = \
@@ -903,10 +831,5 @@ class Report(object):
             self.pages.append(page) 
     
     xml = property(getxml, setxml)
-        
-    def write(self, conector):
-        print 'Report "%s"' % self.name
-        
-        self.title.write(conector)
-        for page in self.pages:
-            page.write(conector, self.params)
+    
+    
