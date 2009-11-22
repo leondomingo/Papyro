@@ -540,9 +540,6 @@ class SubParameters(object):
         valor = '<params>\n'
         
         for par in self.params:
-            # 0 - name
-            # 1 - (valor)
-            # 2 - type
             valor += '<param>' + par + '</param>\n'
                             
         valor += '</params>\n'
@@ -807,10 +804,10 @@ class Report(object):
         self.paper_orientation = paper.find('orientation').text.lower()
         
         margin = paper.find('margin')
-        self.margin_left = float(margin.find('left').text or 0.0)
-        self.margin_right = float(margin.find('right').text or 0.0)
-        self.margin_top = float(margin.find('top').text or 0.0)
-        self.margin_bottom = float(margin.find('bottom').text or 0.0)
+        self.margin_left = float(margin.find('left').text or 0)
+        self.margin_right = float(margin.find('right').text or 0)
+        self.margin_top = float(margin.find('top').text or 0)
+        self.margin_bottom = float(margin.find('bottom').text or 0)
         
         rt = informe.find('report_title')
         if rt != None:

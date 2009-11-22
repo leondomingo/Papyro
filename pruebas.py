@@ -17,7 +17,7 @@ conector = conexion()
 #                           'MailResumenMensual/MailResumenMensual.xml')
 
 report_path = os.path.join(conector.datosconexion.getVariable('ruta_informes'), 
-                           'MailResumenMensual/ResumenMensual.xml')
+                           'MailResumenMensual/MailResumenMensual.xml')
 
 f = file(report_path, 'r')
 try:    
@@ -35,13 +35,17 @@ try:
                                         ('P_DEADLINE', 'December 2', 'str'),
                                         ('P_HOY', '23 de Noviembre', 'str'),
                                         ('P_TODAY', 'November 23', 'str'),
-                                        ('P_PROFESOR', '2', 'int'),
+                                        ('P_PROFESOR', '1', 'int'),
                                         ('P_FECHA_INICIO', '01/11/2009', 'date'),
                                         ('P_FECHA_FIN', '23/11/2009', 'date')], debug=False)
     print resultado
     
-#    print enviar_email('atenea@tandem-madrid.com', ['leon.domingo@ender.es'],
-#                       'Resumen mensual', resultado,
-#                       'smtp.dipro.es', 'atenea@tandem-madrid.com', 'A1s2d3f4')
+    print enviar_email('atenea@tandem-madrid.com', ['leon.domingo@ender.es', 'dgsalas@ender.es'],
+                       'Resumen mensual', resultado,
+                       'smtp.dipro.es', 'atenea@tandem-madrid.com', 'A1s2d3f4',
+                       nombre_remitente='Atenea - Tandem Madrid',
+                       nombres_destinatarios=['León Domingo Ortín <leon.domingo@ender.es>',
+                                              'Domingo García Salas <dgsalas@ender.es>'])
+    
 finally:
     f.close()
