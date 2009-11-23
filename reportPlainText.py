@@ -191,30 +191,30 @@ class ReportPlainText(object):
 
         # constantes
         for k, v in CONSTANTES.iteritems():
-            variable = '#%s#' % k
-            out = out.replace(variable, v)
+            parametro = '#%s#' % k
+            out = out.replace(parametro, v)
         
         # master
         if mdata != None:
             for k in mdata.keys():
-                variable = '#%s#' % str(k)
-                out = out.replace(variable, str(mdata[k]))
+                parametro = '#%s#' % str(k)
+                out = out.replace(parametro, str(mdata[k]))
 
         # detail
         if ddata != None:
             for k in ddata.keys():
-                variable = '#%s#' % str(k)
-                out = out.replace(variable, str(ddata[k]))
+                parametro = '#%s#' % str(k)
+                out = out.replace(parametro, str(ddata[k]))
 
         # params
         for par in self.report.params.params:
-            variable = '#%s#' % par[0]
-            out = out.replace(variable, par[1])
+            parametro = '#%s#' % par[0]
+            out = out.replace(parametro, par[1])
             
         # subreports
         for subreport in self.report.subreports:
-            variable = '#SUBREPORT %s#' % subreport.id 
-            out = out.replace(variable, self.writeSubReport(subreport))
+            parametro = '#SUBREPORT %s#' % subreport.id 
+            out = out.replace(parametro, self.writeSubReport(subreport))
         
         # imprimir contenido por "stdout"
         if self.debug: print out
@@ -222,6 +222,7 @@ class ReportPlainText(object):
         self.ftext.write(out + '\n')
         
     def writeTextFile(self, textfile, mdata=None, ddata=None):
+        
         ft = file(os.path.join(self.base_path, textfile.name), 'r')
         try:
             out = ft.read()
@@ -230,30 +231,30 @@ class ReportPlainText(object):
             
         # constantes
         for k, v in CONSTANTES.iteritems():
-            variable = '#%s#' % k
-            out = out.replace(variable, v)            
+            parametro = '#%s#' % k
+            out = out.replace(parametro, v)            
         
         # master
         if mdata != None:
             for k in mdata.keys():
-                variable = '#%s#' % str(k)
-                out = out.replace(variable, str(mdata[k]))
+                parametro = '#%s#' % str(k)
+                out = out.replace(parametro, str(mdata[k]))
 
         # detail
         if ddata != None:
             for k in ddata.keys():
-                variable = '#%s#' % str(k)
-                out = out.replace(variable, str(ddata[k]))
+                parametro = '#%s#' % str(k)
+                out = out.replace(parametro, str(ddata[k]))
 
         # params
         for par in self.report.params.params:
-            variable = '#%s#' % par[0]
-            out = out.replace(variable, par[1])
+            parametro = '#%s#' % par[0]
+            out = out.replace(parametro, par[1])
             
         # subreports
         for subreport in self.report.subreports:
-            variable = '#SUBREPORT %s#' % subreport.id 
-            out = out.replace(variable, self.writeSubReport(subreport))
+            parametro = '#SUBREPORT %s#' % subreport.id 
+            out = out.replace(parametro, self.writeSubReport(subreport))
         
         # imprimir contenido por "stdout"
         if self.debug: print out
