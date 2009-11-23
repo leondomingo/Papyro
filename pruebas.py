@@ -39,13 +39,22 @@ try:
                                         ('P_FECHA_INICIO', '01/11/2009', 'date'),
                                         ('P_FECHA_FIN', '23/11/2009', 'date')], debug=False)
     print resultado
+
+    print enviar_email(('atenea@tandem-madrid.com', 'Atenea - Tandem Madrid'),
+                       [('leon.domingo@ender.es', 'León Domingo Ortín'), 
+                        ('dgsalas@ender.es', 'Domingo G. Salas')],
+                       'Resumen mensual 2', resultado,
+                       'smtp.dipro.es', 'atenea@tandem-madrid.com', 'A1s2d3f4',
+                       nombre_remitente='Atenea - Tandem Madrid <atenea@tandem-madrid.com>',
+                       nombres_destinatarios=['León Domingo Ortín <leon.domingo@ender.es>',
+                                              'Domingo G. Salas <dgsalas@ender.es>'])
     
     print enviar_email('atenea@tandem-madrid.com', ['leon.domingo@ender.es', 'dgsalas@ender.es'],
-                       'Resumen mensual', resultado,
+                       'Resumen mensual 2', resultado,
                        'smtp.dipro.es', 'atenea@tandem-madrid.com', 'A1s2d3f4',
-                       nombre_remitente='Atenea - Tandem Madrid',
+                       nombre_remitente='Atenea - Tandem Madrid <atenea@tandem-madrid.com>',
                        nombres_destinatarios=['León Domingo Ortín <leon.domingo@ender.es>',
-                                              'Domingo García Salas <dgsalas@ender.es>'])
+                                              'Domingo G. Salas <dgsalas@ender.es>'])
     
 finally:
     f.close()
