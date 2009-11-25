@@ -52,6 +52,9 @@
                     FROM grupos
                     JOIN cursos on cursos.id = grupos.id_cursos_cursodelgrupo
                     LEFT JOIN clientes on clientes.id = cursos.id_clientes_propietario
+                    WHERE 
+                        grupos.fechainicio is not null AND
+                        grupos.fechafin is not null                        
                     ORDER BY cursos.nombre
                     --LIMIT %(NUMERO_GRUPOS)s
                     </query>
@@ -127,24 +130,6 @@
                     </header>
                 </group_header>
                 <body>
-                    <text>
-                        <id>333</id>
-                        <value>Alumnos del grupo</value>
-                        <position>
-                            <left>20</left>
-                            <top>0</top>
-                        </position>
-                        <size>
-                            <height>3</height>
-                            <width>0</width>
-                        </size>
-                        <font>
-                            <name></name>
-                            <size>5</size>
-                            <color></color>
-                            <style></style>
-                        </font>
-                    </text>
                     <line>
                         <id>linea_1</id>
                         <x1>20</x1>
@@ -173,6 +158,29 @@
                             <field>CURSOS_NOMBRE</field>
                         </fields>
                     </table>
+                    <header>
+                        <id></id>
+                        <body>
+                            <text>
+                                <id></id>
+                                <value>Alumnos del grupo</value>
+                                <position>
+                                    <left>20</left>
+                                    <top>0</top>
+                                </position>
+                                <size>
+                                    <height>3</height>
+                                    <width>0</width>
+                                </size>
+                                <font>
+                                    <name>VeraSans</name>
+                                    <size>5</size>
+                                    <color>D000FF</color>
+                                    <style></style>
+                                </font>
+                            </text>
+                        </body>
+                    </header>
                     <body>
                         <text>
                             <id>txt_alumno</id>
@@ -186,7 +194,7 @@
                                 <top>0</top>
                             </position>
                             <font>
-                                <name></name>
+                                <name>Tahoma</name>
                                 <size>7</size>
                                 <color></color>
                                 <style></style>
@@ -204,8 +212,8 @@
                                 <top>0</top>
                             </position>
                             <font>
-                                <name></name>
-                                <size>6</size>
+                                <name>LucidaSans</name>
+                                <size>4</size>
                                 <color></color>
                                 <style></style>
                             </font>                            

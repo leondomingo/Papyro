@@ -3,6 +3,8 @@
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 import reports
 #from random import seed, randint
 
@@ -15,6 +17,7 @@ class ReportPdf(object):
         self.hg = 0
         self.wd = 0
         self.cur_page = None
+        self.debug = False
         
     def newPage(self):
         
@@ -44,7 +47,7 @@ class ReportPdf(object):
         self.canvas.translate(m_left, self.hg + m_bottom + pf_height)
         
         # dibujar espacio con los márgenes
-        self.canvas.rect(0, -self.hg, self.wd, self.hg)
+        #self.canvas.rect(0, -self.hg, self.wd, self.hg)
         
         # fuente
         self.canvas.setFont(self.report.font.name, self.report.font.size)
@@ -53,14 +56,24 @@ class ReportPdf(object):
         if self.cur_page.page_header != None:            
             self.writePageHeader(self.cur_page.page_header)
         
-    def writeReport(self, pdf_file, c=None, params=None):
+    def writeReport(self, pdf_file, c=None, params=None, debug=False):
+        
+        self.debug = debug
         
         # canvas
         if c != None:
             self.canvas = c
         else:
             self.canvas = canvas.Canvas(pdf_file, pagesize=A4)
-            
+      
+        # cargar fuentes
+        vera_f = TTFont('VeraSans', 'C:/WINDOWS/Fonts/Vera.ttf')
+        tahoma_f = TTFont('Tahoma', 'C:/WINDOWS/Fonts/Tahoma.ttf')
+        lucida_f = TTFont('LucidaSans', 'C:/WINDOWS/Fonts/lsans.ttf')
+        pdfmetrics.registerFont(vera_f)
+        pdfmetrics.registerFont(tahoma_f)
+        pdfmetrics.registerFont(lucida_f)
+        
         param_names = [param[0] for param in self.report.params.params]
             
         # params
@@ -95,7 +108,7 @@ class ReportPdf(object):
     
     def writeReporPage(self, page):
         
-        print 'ReportPage:', str(page)
+        if self.debug: print 'ReportPage:', str(page)
         
 #        # page_header
 #        if page.page_header != None:
@@ -254,9 +267,25 @@ class ReportPdf(object):
                 
         sql %= detail_dict
         
+        data = self.conector.conexion.execute(sql)
+
         min_y = y
         new_page = False
-        for ddata in self.conector.conexion.execute(sql):
+        
+        # detail:header
+        if detail.header != None:
+            if data.rowcount > 0:
+                y, new_page = self.writeBody(detail.header.body, y, mdata)            
+            else:
+                if detail.header.print_if_detail_is_empty:
+                    y, new_page = self.writeBody(detail.header.body, y, mdata)
+                    
+            if not new_page:
+                if y < min_y: min_y = y
+            else:
+                min_y = y      
+        
+        for ddata in data:
             y, new_page = self.writeBody(detail.body, y, mdata, ddata)
             if not new_page:
                 if y < min_y: min_y = y
@@ -327,7 +356,7 @@ class ReportPdf(object):
             out = out.replace(k2, par[1])
         
         # imprimir contenido por "stdout"
-        print out, y - (text.top * mm + text.height * mm), text.top, text.height
+        if self.debug: print out, y - (text.top * mm + text.height * mm), text.top, text.height
 
         sz = self.report.font.size
         if text.font.size != None:
@@ -374,7 +403,8 @@ class ReportPdf(object):
     
     def writeLine(self, line, y):
         
-        print 'Line: x1=%d, y1=%d, x2=%d, y2=%d' % \
+        if self.debug: 
+            print 'Line: x1=%d, y1=%d, x2=%d, y2=%d' % \
                 (line.x1, line.y1, line.x2, line.y2)
         
         self.canvas.saveState()
