@@ -438,8 +438,7 @@ class Master(NotPrintableItem):
             self.details.append(detail)
             detail.xml = etree.tostring(detalle)
         
-    xml = property(getxml, setxml)       
-    
+    xml = property(getxml, setxml)   
         
 class Text(PrintableItem):
     def __init__(self, id=None):
@@ -641,6 +640,180 @@ class Body(NotPrintableItem):
 
                 
     xml = property(getxml, setxml)
+    
+class CTHeader(Body):
+    def __init__(self):
+        Body.__init__(self)
+        
+    def getxml(self):
+        valor = \
+            '<header>\n' + \
+            Body.getxmlitems(self) + \
+            '</header>\n'
+            
+        return valor
+    
+    def setxml(self, valor):
+        Body.setxml(self, valor)        
+                
+    xml = property(getxml, setxml)
+    
+class CTColumn(NotPrintableItem):
+    def __init__(self, id=None):
+        NotPrintableItem.__init__(self)
+        self.id = id or ''
+        self.header = CTHeader()
+        self.body = Body()
+        self.width = None
+        
+    def getxml(self):
+        value = \
+            '<col>\n' + \
+            self.header.xml + \
+            self.body.xml + \
+            '  <width>' + str(self.width or 0) + '</width>\n' + \
+            '<\col>\n'
+            
+        return value
+    
+    def setxml(self, value):
+        
+        ctc = etree.fromstring(value)
+        
+        self.id = ctc.find('id').text or ''
+        self.header.xml = etree.tostring(ctc.find('header'))
+        self.body.xml = etree.tostring(ctc.find('body'))
+        self.width = int(ctc.find('width').text or 0)        
+    
+    xml = property(getxml, setxml)
+    
+class CTColumns(NotPrintableItem):
+    def __init__(self, id=None):
+        NotPrintableItem.__init__(self)
+        self.id = id or ''
+        self.columns = []
+        
+    def getcolumnsxml(self):
+        value = ''
+        for col in self.columns:
+            value += col.xml
+            
+        return value
+        
+    def getxml(self):
+        value = \
+            '<columns>\n' + \
+            self.getcolumnsxml() + \
+            '</columns>\n'
+        
+        return value
+    
+    def setxml(self, value):
+        self.columns = []
+        ctc = etree.fromstring(value)
+        
+        self.id = ctc.find('id').text or ''
+        
+        for col in ctc.iterchildren('col'):
+            new_col = CTColumn()
+            new_col.xml = etree.tostring(col)
+            self.columns.append(new_col)        
+    
+    xml = property(getxml, setxml)
+    
+class CTRowHeader(NotPrintableItem):
+    def __init__(self, id=None):
+        NotPrintableItem.__init__(self)
+        self.id = id or ''
+        self.header = CTHeader()
+        self.height = None
+        
+    def getxml(self):
+        value = \
+            '<rowheader>\n' + \
+            self.header.xml + \
+            '  <height>' + str(self.height or 0) + '</height>\n' + \
+            '</rowheader>\n'
+            
+        return value
+    
+    def setxml(self, value):
+        rh = etree.fromstring(value)
+        
+        self.id = rh.find('id').text or ''
+        self.header.xml = etree.tostring(rh.find('header'))
+        self.height = int(rh.find('height').text or 0)
+    
+    xml = property(getxml, setxml)
+    
+class CTRowHeaders(NotPrintableItem):
+    def __init__(self, id=None):
+        NotPrintableItem.__init__(self)
+        self.id = id or ''
+        self.width = None
+        self.rowheaders = []
+        
+    def getrowheadersxml(self):
+        value = ''
+        for rh in self.rowheaders:
+            value += rh.xml
+            
+        return value
+        
+    def getxml(self):
+        value = \
+            '<rowheaders>\n' + \
+            self.getrowheadersxml() + \
+            '</rowheaders>\n'
+            
+        return value
+    
+    def setxml(self, value):
+        self.rowheaders = []
+        ctrh = etree.fromstring(value)
+        
+        self.id = ctrh.find('id').text or ''
+        self.width = int(ctrh.find('width').text or 0)
+        
+        for rh in ctrh.iterchildren('rowheader'):
+            new_rh = CTRowHeader()
+            new_rh.xml = etree.tostring(rh)
+            
+            self.rowheaders.append(new_rh)
+    
+    xml = property(getxml, setxml)
+        
+        
+class CrossTab(NotPrintableItem):
+    def __init__(self, id=None):
+        NotPrintableItem.__init__(self)
+        self.id = id or ''
+        self.master = Master()
+        self.detail = Detail()
+        self.columns = CTColumns()
+        self.rowheaders = CTRowHeaders()
+        
+    def getxml(self):
+        value = \
+            '<crosstab>\n' + \
+            self.master.xml + \
+            self.detail.xml + \
+            self.columns.xml + \
+            self.rowheaders.xml + \
+            '<crosstab>\n'
+            
+        return value
+    
+    def setxml(self, value):
+        ct = etree.fromstring(value)
+        
+        self.id = ct.find('id').text or ''
+        self.master.xml = etree.tostring(ct.find('master'))
+        self.detail.xml = etree.tostring(ct.find('detail'))
+        self.columns.xml = etree.tostring(ct.find('columns'))
+        self.rowheaders.xml = etree.tostring(ct.find('rowheaders'))
+    
+    xml = property(getxml, setxml)    
     
 class Header(Body):
     def __init__(self):
