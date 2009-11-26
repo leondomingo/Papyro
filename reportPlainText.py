@@ -176,9 +176,18 @@ class ReportPlainText(object):
             informe = reports.Report(xml=f_xml.read())
             
             parametros = []
-            for subparam_name in subreport.params.params: 
-                i = self.param_names.index(subparam_name)
-                parametros.append(self.report.params.params[i])
+            for subparam in subreport.params.params:
+                
+                if subparam[1] != '':
+                    nombre = subparam[1]
+                else:
+                    nombre = subparam[0]
+                
+                i = self.param_names.index(nombre)                                    
+                param = self.report.params.params[i]                
+                    
+                parametros.append((subparam[0], param[1], param[2]))
+                #print subparam[0], param[1], param[2]
             
             subinforme = ReportPlainText(informe, self.conector)
             return subinforme.writeReport(params=parametros, debug=self.debug)
@@ -248,7 +257,7 @@ class ReportPlainText(object):
 
         # params
         for par in self.report.params.params:
-            parametro = '#%s#' % par[0]
+            parametro = '#%s#' % par[0]            
             out = out.replace(parametro, par[1])
             
         # subreports

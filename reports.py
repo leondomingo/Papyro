@@ -539,7 +539,7 @@ class SubParameters(object):
         valor = '<params>\n'
         
         for par in self.params:
-            valor += '<param>' + par + '</param>\n'
+            valor += '<param value="%s">%s</param>\n' % (par[1] or '', par[0])
                             
         valor += '</params>\n'
         
@@ -550,7 +550,7 @@ class SubParameters(object):
         
         self.params = []
         for param in parametros.iterchildren('param'):
-            self.params.append(param.text)
+            self.params.append((param.text, param.attrib['value']))
             
     xml = property(getxml, setxml)
         
@@ -631,6 +631,12 @@ class Body(NotPrintableItem):
                 self.items.append(det)
                 
                 det.xml = etree.tostring(rep_item)
+                
+            elif rep_item.tag == 'crosstab':
+                ct = CrossTab()
+                self.items.append(ct)
+                
+                ct.xml = etree.tostring(rep_item)
                 
             elif rep_item.tag == 'line':
                 line = Line()
