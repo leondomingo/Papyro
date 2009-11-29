@@ -21,6 +21,8 @@ class ReportPdf(object):
         
     def newPage(self):
         
+        if self.debug: print '***NEW PAGE*****************'
+        
         # margin
         m_left = self.report.margin_left * mm
         m_right = self.report.margin_right * mm
@@ -47,7 +49,7 @@ class ReportPdf(object):
         self.canvas.translate(m_left, self.hg + m_bottom + pf_height)
         
         # dibujar espacio con los márgenes
-        #self.canvas.rect(0, -self.hg, self.wd, self.hg)
+#        self.canvas.rect(0, -self.hg, self.wd, self.hg)
         
         # fuente
         self.canvas.setFont(self.report.font.name, self.report.font.size)
@@ -149,6 +151,12 @@ class ReportPdf(object):
                 else:
                     text_items.append(item)
                     
+            if new_page and not body.split_on_new_page:
+                self.canvas.showPage()
+                self.newPage()                
+                min_y = 0
+                y0 = 0
+                    
             # en esta página
             for item in text_items:
                 y, new_page = self.writeText(item, y0, mdata, ddata)
@@ -157,13 +165,14 @@ class ReportPdf(object):
             if text_items_next_page != []:
                 # crear nueva página
                 new_page = True
-                self.canvas.showPage()
-                self.newPage()
+                if body.split_on_new_page:
+                    self.canvas.showPage()
+                    self.newPage()
                 min_y = 0
             
                 # en la siguiente página
                 for item, y in text_items_next_page:
-                    y = self.writeText(item, y, mdata, ddata)[0]
+                    y = self.writeText(item, 0, mdata, ddata)[0]
                     if y < min_y: min_y = y
                 
             return min_y, new_page
@@ -207,6 +216,7 @@ class ReportPdf(object):
         if master_dict != {}:
             sql %= master_dict
             
+        # group headers
         primero = True
         min_y = y
         new_page = False

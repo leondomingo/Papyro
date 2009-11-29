@@ -586,6 +586,7 @@ class Body(NotPrintableItem):
     def __init__(self):
         NotPrintableItem.__init__(self)        
         self.items = [] # lista de "ReportItem"
+        self.split_on_new_page = False
         
     def getxmlitems(self):
         valor = ''
@@ -597,6 +598,7 @@ class Body(NotPrintableItem):
     def getxml(self):
         valor = \
             '<body>\n' + \
+            ('  <split_on_new_page/>\n' if self.split_on_new_page else '') + \
             self.getxmlitems() + \
             '</body>\n'
             
@@ -604,9 +606,11 @@ class Body(NotPrintableItem):
     
     def setxml(self, valor):        
         self.items = []
-        cuerpo = etree.fromstring(valor)
+        bd = etree.fromstring(valor)
         
-        for rep_item in cuerpo.iterchildren():
+        self.split_on_new_page = bd.find('split_on_new_page') != None            
+        
+        for rep_item in bd.iterchildren():
             
             if rep_item.tag == 'text':
                 txt = Text()
@@ -828,6 +832,7 @@ class Header(Body):
     def getxml(self):
         valor = \
             '<header>\n' + \
+            ('  <split_on_new_page/>\n' if self.split_on_new_page else '') + \
             Body.getxmlitems(self) + \
             '</header>\n'
             

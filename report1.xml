@@ -21,7 +21,8 @@
         </style>
     </font>
     <params>
-        <param name="NUMERO_GRUPOS" type="int">50</param>
+        <param name="P_NUMERO_GRUPOS" type="int">50</param>
+        <param name="P_GRUPO" type="int"></param>
     </params>
     <report_title>
         <id>title_1</id>
@@ -54,9 +55,10 @@
                     LEFT JOIN clientes on clientes.id = cursos.id_clientes_propietario
                     WHERE 
                         grupos.fechainicio is not null AND
-                        grupos.fechafin is not null                        
+                        grupos.fechafin is not null
+                        -- AND grupos.id = %(P_GRUPO)s
                     ORDER BY cursos.nombre
-                    --LIMIT %(NUMERO_GRUPOS)s
+                    --LIMIT %(P_NUMERO_GRUPOS)s
                     </query>
                 </table>
                 <group_header>
@@ -91,8 +93,9 @@
                     <field>GRUPOS_NOMBRE</field>
                     <options></options>
                     <header>
+                        <!--<split_on_new_page/>-->
                         <text>
-                            <id>222</id>
+                            <id></id>
                             <value>#GRUPOS_NOMBRE#</value>
                             <position>
                                 <left>15</left>
@@ -110,7 +113,7 @@
                             </font>
                         </text>
                         <text>
-                            <id>2232</id>
+                            <id></id>
                             <value>#GRUPOS_FECHAINICIO# - #GRUPOS_FECHAFIN#</value>
                             <position>
                                 <left>15</left>
