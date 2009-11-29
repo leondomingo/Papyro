@@ -6,7 +6,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import reports
-#from random import seed, randint
+import os.path
 
 class ReportPdf(object):
     
@@ -67,14 +67,13 @@ class ReportPdf(object):
             self.canvas = c
         else:
             self.canvas = canvas.Canvas(pdf_file, pagesize=A4)
-      
+        
         # cargar fuentes
-        vera_f = TTFont('VeraSans', 'C:/WINDOWS/Fonts/Vera.ttf')
-        tahoma_f = TTFont('Tahoma', 'C:/WINDOWS/Fonts/Tahoma.ttf')
-        lucida_f = TTFont('LucidaSans', 'C:/WINDOWS/Fonts/lsans.ttf')
-        pdfmetrics.registerFont(vera_f)
-        pdfmetrics.registerFont(tahoma_f)
-        pdfmetrics.registerFont(lucida_f)
+        base = os.path.dirname(__file__)
+        pdfmetrics.registerFont(TTFont('VeraSans', os.path.join(base, 'ttfonts/vera.ttf')))
+        pdfmetrics.registerFont(TTFont('Tahoma', os.path.join(base, 'ttfonts/tahoma.ttf')))
+        pdfmetrics.registerFont(TTFont('LucidaSans', os.path.join(base, 'ttfonts/lsans.ttf')))
+        pdfmetrics.registerFont(TTFont('Arial', os.path.join(base, 'ttfonts/arial.ttf')))
         
         param_names = [param[0] for param in self.report.params.params]
             
