@@ -22,7 +22,7 @@ f = file('./report1.xml', 'r')
 #f = file(report_path, 'r')
 #f = file('./report1.xml', 'r')
 try:    
-    informe = Report(xml=f.read())    
+    informe = Report(xml=f.read())
 #    print informe.xml
     
     pdf = ReportPdf(informe, conector)

@@ -7,6 +7,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import reports
 import os.path
+from datetime import datetime
 
 class ReportPdf(object):
     
@@ -17,11 +18,14 @@ class ReportPdf(object):
         self.hg = 0
         self.wd = 0
         self.cur_page = None
+        self.page_no = 0
         self.debug = False
         
     def newPage(self):
         
         if self.debug: print '***NEW PAGE*****************'
+        
+        self.page_no += 1
         
         # margin
         m_left = self.report.margin_left * mm
@@ -29,7 +33,7 @@ class ReportPdf(object):
         m_top = self.report.margin_top * mm
         m_bottom = self.report.margin_bottom * mm
         
-        # anchura de A4
+        # A4 width & height
         wd0 = 210 * mm
         hg0 = 297 * mm
         
@@ -41,20 +45,20 @@ class ReportPdf(object):
         # page_footer
         pf_height = 0
         
-        # anchura con márgenes
+        # width with margins
         self.wd = wd0 - m_left - m_right
         self.hg = hg0 - m_top - m_bottom - ph_height - pf_height
         
-        # mover origen
+        # "translate" origin
         self.canvas.translate(m_left, self.hg + m_bottom + pf_height)
         
-        # dibujar espacio con los márgenes
+        # draw margins
 #        self.canvas.rect(0, -self.hg, self.wd, self.hg)
         
-        # fuente
+        # font
         self.canvas.setFont(self.report.font.name, self.report.font.size)
         
-        # imprimir page_header de la página actual
+        # print "page_header" of the current page
         if self.cur_page.page_header != None:            
             self.writePageHeader(self.cur_page.page_header)
         
@@ -68,13 +72,14 @@ class ReportPdf(object):
         else:
             self.canvas = canvas.Canvas(pdf_file, pagesize=A4)
         
-        # cargar fuentes
+        # load fonts
         base = os.path.dirname(__file__)
         pdfmetrics.registerFont(TTFont('VeraSans', os.path.join(base, 'ttfonts/vera.ttf')))
         pdfmetrics.registerFont(TTFont('Tahoma', os.path.join(base, 'ttfonts/tahoma.ttf')))
         pdfmetrics.registerFont(TTFont('LucidaSans', os.path.join(base, 'ttfonts/lsans.ttf')))
         pdfmetrics.registerFont(TTFont('Arial', os.path.join(base, 'ttfonts/arial.ttf')))
         
+        # get param names
         param_names = [param[0] for param in self.report.params.params]
             
         # params
@@ -86,7 +91,7 @@ class ReportPdf(object):
            
         self.cur_page = self.report.pages[0]
         self.newPage()
-        primera_pagina = True
+        first_page = True
         
         # title
         self.writeReportTitle(self.report.title)
@@ -94,13 +99,13 @@ class ReportPdf(object):
         # pages
         for page in self.report.pages:
             self.cur_page = page
-            if not primera_pagina:
+            if not first_page:
                 self.newPage()
                 
             self.writeReporPage(page)
             self.canvas.showPage()
             
-            primera_pagina = False
+            first_page = False
             
         self.canvas.save()
     
@@ -111,9 +116,9 @@ class ReportPdf(object):
         
         if self.debug: print 'ReportPage:', str(page)
         
-#        # page_header
-#        if page.page_header != None:
-#            self.writePageHeader(page.page_header, 0)
+        # page_header
+        if page.page_header != None:
+            self.writePageHeader(page.page_header)
             
         # body
         self.writeBody(page.body, 0)
@@ -124,7 +129,7 @@ class ReportPdf(object):
     
     def writeBody(self, body, y, mdata=None, ddata=None):
                 
-        # averiguar si todos los elementos son "Text" o no
+        # all the items are "Text"?
         only_text = True
         for item in body.items:
             if not isinstance(item, reports.Text):
@@ -156,7 +161,7 @@ class ReportPdf(object):
                 min_y = 0
                 y0 = 0
                     
-            # en esta página
+            # on this page
             for item in text_items:
                 y, new_page = self.writeText(item, y0, mdata, ddata)
                 if y < min_y: min_y = y                
@@ -169,7 +174,7 @@ class ReportPdf(object):
                     self.newPage()
                 min_y = 0
             
-                # en la siguiente página
+                # on the next page
                 for item, y in text_items_next_page:
                     y = self.writeText(item, 0, mdata, ddata)[0]
                     if y < min_y: min_y = y
@@ -191,10 +196,6 @@ class ReportPdf(object):
                 elif isinstance(item, reports.Text):
                     y, new_page = self.writeText(item, y, mdata, ddata)
                 
-                # Line
-#                elif isinstance(item, reports.Line):
-#                    y = self.writeLine(item, y)
-                
                 if not new_page:
                     if y < min_y: min_y = y
                 else:
@@ -206,7 +207,7 @@ class ReportPdf(object):
         
         sql = master.table.query
         
-        # parámetros
+        # parameters
         master_dict = {}
         for par in self.report.params.params:
             if sql.find(par[0]):
@@ -216,7 +217,7 @@ class ReportPdf(object):
             sql %= master_dict
             
         # group headers
-        primero = True
+        first_gh = True
         min_y = y
         new_page = False
         values = [None] * len(master.group_headers)
@@ -225,13 +226,13 @@ class ReportPdf(object):
             i = 0
             for i in xrange(len(master.group_headers)):
                 if mdata[master.group_headers[i].field] != values[i]:
-                    if not primero and master.group_headers[i].options.print_on_new_page:
+                    if not first_gh and master.group_headers[i].options.print_on_new_page:
                         self.canvas.showPage()
                         self.newPage()
                         y = 0
                         min_y = y
                         
-                    primero = False
+                    first_gh = False
                         
                     y, new_page = self.writeBody(master.group_headers[i].header, y, mdata)
                     values[i] = mdata[master.group_headers[i].field]
@@ -263,13 +264,13 @@ class ReportPdf(object):
     
     def writeDetail(self, detail, y, mdata):
 
-        # tratar SQL
+        # manage SQL
         detail_dict = {}
         detail_dict[detail.master_field] = mdata[detail.master_field]       
         
         sql = detail.table.query
         
-        # parámetros 
+        # parameters 
         for par in self.report.params.params:
             if sql.find(par[0]):
                 detail_dict[par[0]] = par[1]
@@ -341,30 +342,45 @@ class ReportPdf(object):
             y = y + self.hg # y = y - (-self.hg)
             new_page = True
             
-        return y, new_page    
+        return y, new_page
+    
+    def apply_constants(self, text):
+        
+        # PAGE_NO
+        text = text.replace('#PAGE_NO#', str(self.page_no))
+        
+        # DATE
+        text = text.replace('#DATE#', datetime.now().strftime('%d/%m/%Y'))
+        
+        # TIME
+        text = text.replace('#TIME#', datetime.now().strftime('%H:%M:%S'))
+        
+        return text    
     
     def writeText(self, text, y, mdata=None, ddata=None):
         
         out = text.value
         
+        out = self.apply_constants(out)
+        
         # master
         if mdata != None:
             for k in mdata.keys():
-                k2 = '#%s#' % str(k)
-                out = out.replace(k2, str(mdata[k]))
+                parameter = '#%s#' % str(k)
+                out = out.replace(parameter, str(mdata[k]))
 
         # detail
         if ddata != None:
             for k in ddata.keys():
-                k2 = '#%s#' % str(k)
-                out = out.replace(k2, str(ddata[k]))
+                parameter = '#%s#' % str(k)
+                out = out.replace(parameter, str(ddata[k]))
 
         # params
         for par in self.report.params.params:
-            k2 = '#%s#' % par[0]
-            out = out.replace(k2, par[1])
+            parameter = '#%s#' % par[0]
+            out = out.replace(parameter, par[1])
         
-        # imprimir contenido por "stdout"
+        # print content thru "stdout"
         if self.debug: print out, y - (text.top * mm + text.height * mm), text.top, text.height
 
         sz = self.report.font.size
@@ -383,10 +399,10 @@ class ReportPdf(object):
             y = -(text.top * mm + text.height * mm)
             new_page = True
         
-        # guardar estado            
+        # save state            
         self.canvas.saveState()
         
-        # cambiar fuente
+        # change font
         self.canvas.setFont(fn, sz)
         if text.font.color != None:
             r = int(text.font.color[0:2], 16) / 255.0
@@ -405,7 +421,7 @@ class ReportPdf(object):
 #        self.canvas.setStrokeColorRGB(r, g, b)
 #        self.canvas.line(0, y, self.wd, y)
         
-        # restaurar estado
+        # restore state
         self.canvas.restoreState()
         
         return y, new_page

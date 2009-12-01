@@ -4,7 +4,7 @@ import reports
 import cStringIO
 import os.path
 
-CONSTANTES = {'CR': '\n'}
+CONSTANTS = {'CR': '\n'}
 
 class ReportPlainText(object):
     
@@ -38,7 +38,7 @@ class ReportPlainText(object):
             self.cur_page = page                
             self.writeReporPage(page)
              
-        # guardar cambios en 'text_file'
+        # save changes in 'text_file'
         if text_file != None:
             f = file(text_file, 'w')
             try:
@@ -75,7 +75,8 @@ class ReportPlainText(object):
             # Master
             if isinstance(item, reports.Master):
                 self.writeMaster(item)
-                
+            
+            # Detail   
             elif isinstance(item, reports.Detail):
                 self.writeDetail(item, mdata)
             
@@ -91,7 +92,7 @@ class ReportPlainText(object):
         
         sql = master.table.query
         
-        # parámetros
+        # parameters
         master_dict = {}
         for par in self.report.params.params:
             if sql.find(par[0]):
@@ -124,13 +125,13 @@ class ReportPlainText(object):
     
     def writeDetail(self, detail, mdata):
 
-        # tratar SQL
+        # manage SQL
         detail_dict = {}
         detail_dict[detail.master_field] = mdata[detail.master_field]       
         
         sql = detail.table.query
         
-        # parámetros 
+        # parameters 
         for par in self.report.params.params:
             if sql.find(par[0]):
                 detail_dict[par[0]] = par[1]
@@ -175,22 +176,22 @@ class ReportPlainText(object):
         try:
             informe = reports.Report(xml=f_xml.read())
             
-            parametros = []
+            parameters = []
             for subparam in subreport.params.params:
                 
                 if subparam[1] != '':
-                    nombre = subparam[1]
+                    name = subparam[1]
                 else:
-                    nombre = subparam[0]
+                    name = subparam[0]
                 
-                i = self.param_names.index(nombre)                                    
+                i = self.param_names.index(name)                                    
                 param = self.report.params.params[i]                
                     
-                parametros.append((subparam[0], param[1], param[2]))
+                parameters.append((subparam[0], param[1], param[2]))
                 #print subparam[0], param[1], param[2]
             
             subinforme = ReportPlainText(informe, self.conector)
-            return subinforme.writeReport(params=parametros, debug=self.debug)
+            return subinforme.writeReport(params=parameters, debug=self.debug)
         finally:
             f_xml.close()                            
     
@@ -198,34 +199,34 @@ class ReportPlainText(object):
         
         out = text.value
 
-        # constantes
-        for k, v in CONSTANTES.iteritems():
-            parametro = '#%s#' % k
-            out = out.replace(parametro, v)
+        # constants
+        for k, v in CONSTANTS.iteritems():
+            parameter = '#%s#' % k
+            out = out.replace(parameter, v)
         
         # master
         if mdata != None:
             for k in mdata.keys():
-                parametro = '#%s#' % str(k)
-                out = out.replace(parametro, str(mdata[k]))
+                parameter = '#%s#' % str(k)
+                out = out.replace(parameter, str(mdata[k]))
 
         # detail
         if ddata != None:
             for k in ddata.keys():
-                parametro = '#%s#' % str(k)
-                out = out.replace(parametro, str(ddata[k]))
+                parameter = '#%s#' % str(k)
+                out = out.replace(parameter, str(ddata[k]))
 
         # params
         for par in self.report.params.params:
-            parametro = '#%s#' % par[0]
-            out = out.replace(parametro, par[1])
+            parameter = '#%s#' % par[0]
+            out = out.replace(parameter, par[1])
             
         # subreports
         for subreport in self.report.subreports:
-            parametro = '#SUBREPORT %s#' % subreport.id 
-            out = out.replace(parametro, self.writeSubReport(subreport))
+            parameter = '#SUBREPORT %s#' % subreport.id 
+            out = out.replace(parameter, self.writeSubReport(subreport))
         
-        # imprimir contenido por "stdout"
+        # print content thru "stdout"
         if self.debug: print out
         
         self.ftext.write(out + '\n')
@@ -238,34 +239,34 @@ class ReportPlainText(object):
         finally:
             ft.close()
             
-        # constantes
-        for k, v in CONSTANTES.iteritems():
-            parametro = '#%s#' % k
-            out = out.replace(parametro, v)            
+        # constants
+        for k, v in CONSTANTS.iteritems():
+            parameter = '#%s#' % k
+            out = out.replace(parameter, v)            
         
         # master
         if mdata != None:
             for k in mdata.keys():
-                parametro = '#%s#' % str(k)
-                out = out.replace(parametro, str(mdata[k]))
+                parameter = '#%s#' % str(k)
+                out = out.replace(parameter, str(mdata[k]))
 
         # detail
         if ddata != None:
             for k in ddata.keys():
-                parametro = '#%s#' % str(k)
-                out = out.replace(parametro, str(ddata[k]))
+                parameter = '#%s#' % str(k)
+                out = out.replace(parameter, str(ddata[k]))
 
         # params
         for par in self.report.params.params:
-            parametro = '#%s#' % par[0]            
-            out = out.replace(parametro, par[1])
+            parameter = '#%s#' % par[0]            
+            out = out.replace(parameter, par[1])
             
         # subreports
         for subreport in self.report.subreports:
-            parametro = '#SUBREPORT %s#' % subreport.id 
-            out = out.replace(parametro, self.writeSubReport(subreport))
+            parameter = '#SUBREPORT %s#' % subreport.id 
+            out = out.replace(parameter, self.writeSubReport(subreport))
         
-        # imprimir contenido por "stdout"
+        # print content thru "stdout"
         if self.debug: print out
         
         self.ftext.write(out + '\n')        
