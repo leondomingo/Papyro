@@ -513,6 +513,36 @@ class Line(PrintableItem):
             
     xml = property(getxml, setxml)
     
+class Image(PrintableItem):
+    def __init__(self, id=None):
+        PrintableItem.__init__(self)        
+        self.id = id or ''
+        self.filename = None
+        self.keep_aspect_ratio = False
+        
+    def getxml(self):
+        valor = \
+            '<image>\n' + \
+            '  <id>' + self.id + '</id>\n' + \
+            '  <filename>' + (self.filename or '') + '</filename>\n' + \
+            ('  <keep_aspect_ratio/>\n' if self.keep_aspect_ratio else '') + \
+            ReportItem.getxml(self) + \
+            '</image>\n'
+            
+        return valor
+    
+    def setxml(self, valor):
+        
+        image = etree.fromstring(valor)
+        
+        self.id = image.find('id').text or ''
+        self.filename = image.find('filename').text or ''
+        self.keep_aspect_ratio = image.find('keep_aspect_ratio') != None
+            
+        ReportItem.setxml(self, valor)
+            
+    xml = property(getxml, setxml)    
+    
 class TextFile(PrintableItem):
     def __init__(self, id=None):
         PrintableItem.__init__(self)
@@ -647,6 +677,12 @@ class Body(NotPrintableItem):
                 self.items.append(ct)
                 
                 ct.xml = etree.tostring(rep_item)
+                
+            elif rep_item.tag == 'image':
+                im = Image()
+                self.items.append(im)
+                
+                im.xml = etree.tostring(rep_item)
                 
             elif rep_item.tag == 'line':
                 line = Line()

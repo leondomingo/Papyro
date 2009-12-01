@@ -177,8 +177,8 @@ class ReportPdf(object):
                 
         # all the items are "Text"?
         only_text = True
-        for item in body.items:
-            if not isinstance(item, reports.Text):
+        for item in body.items:            
+            if not isinstance(item, reports.Text) and not isinstance(item, reports.Image):
                 only_text = False
                 break
                     
@@ -208,7 +208,12 @@ class ReportPdf(object):
                     
             # on this page
             for item in text_items:
-                y, new_page = self.writeText(item, y0, mdata, ddata)
+                if isinstance(item, reports.Text):
+                    y, new_page = self.writeText(item, y0, mdata, ddata)
+                    
+                elif isinstance(item, reports.Image):
+                    y, new_page = self.writeImage(item, y0)
+                    
                 if y < min_y: min_y = y                
             
             if text_items_next_page != []:
@@ -220,7 +225,12 @@ class ReportPdf(object):
             
                 # on the next page
                 for item, y in text_items_next_page:
-                    y = self.writeText(item, 0, mdata, ddata)[0]
+                    if isinstance(item, reports.Text):
+                        y = self.writeText(item, 0, mdata, ddata)[0]
+                    
+                    elif isinstance(item, reports.Image):
+                        y = self.writeImage(item, 0)[0]    
+                    
                     if y < min_y: min_y = y
                 
             return min_y, new_page
@@ -239,6 +249,10 @@ class ReportPdf(object):
                 # Text
                 elif isinstance(item, reports.Text):
                     y, new_page = self.writeText(item, y, mdata, ddata)
+                    
+                # Image
+                elif isinstance(item, reports.Image):
+                    y, new_page = self.writeImage(item, y)
                 
                 if not new_page:
                     if y < min_y: min_y = y
@@ -519,3 +533,13 @@ class ReportPdf(object):
         
         return min_y
     
+    def writeImage(self, image, y):
+        
+        y -= (image.top + image.height) * mm
+        
+        self.canvas.drawImage(image.filename, image.left * mm, y, 
+                              image.width * mm, image.height * mm, 
+                              preserveAspectRatio=image.keep_aspect_ratio) #, mask, preserveAspectRatio, anchor
+        
+        return y, False
+        
