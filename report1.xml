@@ -3,7 +3,7 @@
     <name>Otro informe con GroupHeader</name>
     <configuration>
         <paper>
-            <size>A4</size>
+            <size>A3</size>            
             <margin>
                 <left>15</left>
                 <right>15</right>
@@ -162,7 +162,7 @@
                     <field>CURSOS_NOMBRE</field>
                     <footer_id>gf_cursos</footer_id>
                     <options>
-                        <!--<print_on_new_page/>-->
+                        <print_on_new_page/>
                     </options>
                     <header>
                         <text>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
+import reportlab.lib.pagesizes as pagesizes
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -15,6 +15,8 @@ class ReportPdf(object):
         self.report = report
         self.conector = conector
         self.canvas = None
+        self.wd0 = 0
+        self.hg0 = 0
         self.hg = 0
         self.wd = 0
         self.cur_page = None
@@ -39,11 +41,7 @@ class ReportPdf(object):
         m_right = self.report.margin_right * mm
         m_top = self.report.margin_top * mm
         m_bottom = self.report.margin_bottom * mm
-        
-        # A4 width & height
-        wd0 = 210 * mm
-        hg0 = 297 * mm
-        
+                
         # page_header height
         ph_height = 0
         if self.cur_page.page_header != None:
@@ -55,8 +53,8 @@ class ReportPdf(object):
             pf_height = self.cur_page.page_footer.height * mm
             
         # width with margins
-        self.wd = wd0 - m_left - m_right
-        self.hg = hg0 - m_top - m_bottom - ph_height - pf_height
+        self.wd = self.wd0 - m_left - m_right
+        self.hg = self.hg0 - m_top - m_bottom - ph_height - pf_height
         
         # "translate" origin
         self.canvas.translate(m_left, self.hg + m_bottom + pf_height)
@@ -77,9 +75,47 @@ class ReportPdf(object):
         
         # canvas
         if c != None:
+            # using an external 'canvas'
             self.canvas = c
+            
         else:
-            self.canvas = canvas.Canvas(pdf_file, pagesize=A4)
+            # typical paper sizes
+            
+            if self.report.paper_size == 'A0':
+                paper_size = pagesizes.A0
+                
+            elif self.report.paper_size == 'A1':
+                paper_size = pagesizes.A1
+
+            elif self.report.paper_size == 'A2':
+                paper_size = pagesizes.A2 
+
+            elif self.report.paper_size == 'A3':
+                paper_size = pagesizes.A3
+
+            elif self.report.paper_size == 'A4':
+                paper_size = pagesizes.A4
+
+            elif self.report.paper_size == 'A5':
+                paper_size = pagesizes.A5
+                
+            elif self.report.paper_size == 'LETTER':
+                paper_size = pagesizes.letter
+                
+            else:
+                paper_size = pagesizes.A4
+                
+            # orientation
+            if self.report.paper_orientation.lower() == 'landscape':
+                self.wd0 = paper_size[1]
+                self.hg0 = paper_size[0]
+                
+            else:
+                # portrait
+                self.wd0 = paper_size[0]
+                self.hg0 = paper_size[1]
+                
+            self.canvas = canvas.Canvas(pdf_file, pagesize=(self.wd0 , self.hg0))
         
         # load fonts
         base = os.path.dirname(__file__)
