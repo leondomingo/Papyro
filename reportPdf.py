@@ -87,6 +87,11 @@ class ReportPdf(object):
         pdfmetrics.registerFont(TTFont('Tahoma', os.path.join(base, 'ttfonts/tahoma.ttf')))
         pdfmetrics.registerFont(TTFont('LucidaSans', os.path.join(base, 'ttfonts/lsans.ttf')))
         pdfmetrics.registerFont(TTFont('Arial', os.path.join(base, 'ttfonts/arial.ttf')))
+        pdfmetrics.registerFont(TTFont('TimesNewRoman', os.path.join(base, 'ttfonts/times.ttf')))
+        pdfmetrics.registerFont(TTFont('CourierNew', os.path.join(base, 'ttfonts/couriernew.ttf')))
+        pdfmetrics.registerFont(TTFont('Georgia', os.path.join(base, 'ttfonts/georgia.ttf')))
+        pdfmetrics.registerFont(TTFont('Verdana', os.path.join(base, 'ttfonts/verdana.ttf')))
+        pdfmetrics.registerFont(TTFont('MsSanSerif', os.path.join(base, 'ttfonts/msanserif.ttf')))
         
         # get param names
         param_names = [param[0] for param in self.report.params.params]
