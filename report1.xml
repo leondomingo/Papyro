@@ -12,6 +12,7 @@
             </margin>
             <orientation>portrait</orientation>
         </paper>
+        <switch_between_pages/>
     </configuration>
     <font>
         <name>Helvetica</name>

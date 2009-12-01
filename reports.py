@@ -933,6 +933,7 @@ class Report(object):
         self.font = Font()
         self.params = Parameters()
         self.subreports = []
+        self.switch_between_pages = False
         
         self.xml = xml
         
@@ -969,6 +970,7 @@ class Report(object):
             '        <bottom>' + str(self.margin_bottom or 0) + '</bottom>\n' + \
             '      </margin>\n' + \
             '    </paper>\n' + \
+            ('<switch_between_pages/>\n' if self.switch_between_pages else '') + \
             '  </configuration>\n' + \
             self.font.xml + \
             self.params.xml + \
@@ -980,18 +982,20 @@ class Report(object):
         return resultado                    
     
     def setxml(self, valor):
-        informe = etree.fromstring(valor)
+        report = etree.fromstring(valor)
         
-        self.name = informe.find('name').text
+        self.name = report.find('name').text
         
-        if informe.find('font') != None:
-            self.font.xml = etree.tostring(informe.find('font'))
+        if report.find('font') != None:
+            self.font.xml = etree.tostring(report.find('font'))
          
-        self.params.xml = etree.tostring(informe.find('params'))
+        self.params.xml = etree.tostring(report.find('params'))
         
-        paper = informe.find('configuration').find('paper')
+        paper = report.find('configuration').find('paper')
         self.paper_size = paper.find('size').text.upper()
         self.paper_orientation = paper.find('orientation').text.lower()
+        
+        self.switch_between_pages = report.find('configuration').find('switch_between_pages') != None
         
         margin = paper.find('margin')
         self.margin_left = float(margin.find('left').text or 0)
@@ -999,21 +1003,21 @@ class Report(object):
         self.margin_top = float(margin.find('top').text or 0)
         self.margin_bottom = float(margin.find('bottom').text or 0)
         
-        rt = informe.find('report_title')
+        rt = report.find('report_title')
         if rt != None:
-            self.title.xml = etree.tostring(informe.find('report_title'))
+            self.title.xml = etree.tostring(report.find('report_title'))
             
         self.subreports = []
-        for subinforme in informe.iterchildren('subreport'):
+        for s in report.iterchildren('subreport'):
             subreport = SubReport()
-            subreport.xml = etree.tostring(subinforme)
+            subreport.xml = etree.tostring(s)
             
             self.subreports.append(subreport)
             
         self.pages = []
-        for pagina in informe.iterchildren('page'):
+        for p in report.iterchildren('page'):
             page = ReportPage('')
-            page.xml = etree.tostring(pagina)
+            page.xml = etree.tostring(p)
             
             self.pages.append(page) 
     
