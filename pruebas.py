@@ -26,8 +26,8 @@ try:
 #    print informe.xml
     
     pdf = ReportPdf(informe, conector)
-    pdf.writeReport(pdf_file='./report1.pdf', params=[('P_NUMERO_GRUPOS', '100', 'int'),
-                                                      ('P_GRUPO', '390', 'int')]) #, debug=True)
+    pdf.writeReport(pdf_file='./report1.pdf', params=[('P_NUMERO_GRUPOS', '30', 'int'),
+                                                      ('P_GRUPO', '390', 'int')], debug=False)
 
 #    txt = ReportPlainText(informe, conector)
 #    resultado = txt.writeReport(report_path=report_path,

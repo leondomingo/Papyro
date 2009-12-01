@@ -21,7 +21,14 @@ class ReportPdf(object):
         self.page_no = 0
         self.debug = False
         
-    def newPage(self):
+    def newPage(self, save=False):
+        
+        if save:
+            # page_footer        
+            if self.cur_page.page_footer != None:
+                self.writePageFooter(self.cur_page.page_footer)
+                
+            self.canvas.showPage()        
         
         if self.debug: print '***NEW PAGE*****************'
         
@@ -37,14 +44,16 @@ class ReportPdf(object):
         wd0 = 210 * mm
         hg0 = 297 * mm
         
-        # page_header
+        # page_header height
         ph_height = 0
         if self.cur_page.page_header != None:
             ph_height = self.cur_page.page_header.height * mm
             
-        # page_footer
+        # page_footer height
         pf_height = 0
-        
+        if self.cur_page.page_footer != None:
+            pf_height = self.cur_page.page_footer.height * mm
+            
         # width with margins
         self.wd = wd0 - m_left - m_right
         self.hg = hg0 - m_top - m_bottom - ph_height - pf_height
@@ -53,7 +62,7 @@ class ReportPdf(object):
         self.canvas.translate(m_left, self.hg + m_bottom + pf_height)
         
         # draw margins
-#        self.canvas.rect(0, -self.hg, self.wd, self.hg)
+        if self.debug: self.canvas.rect(0, -self.hg, self.wd, self.hg)
         
         # font
         self.canvas.setFont(self.report.font.name, self.report.font.size)
@@ -100,13 +109,13 @@ class ReportPdf(object):
         for page in self.report.pages:
             self.cur_page = page
             if not first_page:
-                self.newPage()
+                self.newPage(save=True)
                 
             self.writeReporPage(page)
             self.canvas.showPage()
             
             first_page = False
-            
+                        
         self.canvas.save()
     
     def writeReportTitle(self, title):
@@ -115,17 +124,13 @@ class ReportPdf(object):
     def writeReporPage(self, page):
         
         if self.debug: print 'ReportPage:', str(page)
-        
-        # page_header
-        if page.page_header != None:
-            self.writePageHeader(page.page_header)
             
         # body
         self.writeBody(page.body, 0)
         
         # page_footer
         if page.page_footer != None:
-            self.writePageFooter(page.page_footer)
+            self.writePageFooter(page.page_footer)                
     
     def writeBody(self, body, y, mdata=None, ddata=None):
                 
@@ -156,8 +161,7 @@ class ReportPdf(object):
                     text_items.append(item)
                     
             if new_page and not body.split_on_new_page:
-                self.canvas.showPage()
-                self.newPage()                
+                self.newPage(save=True)                
                 min_y = 0
                 y0 = 0
                     
@@ -170,8 +174,7 @@ class ReportPdf(object):
                 # crear nueva página
                 new_page = True
                 if body.split_on_new_page:
-                    self.canvas.showPage()
-                    self.newPage()
+                    self.newPage(save=True)
                 min_y = 0
             
                 # on the next page
@@ -221,19 +224,30 @@ class ReportPdf(object):
         min_y = y
         new_page = False
         values = [None] * len(master.group_headers)
-        for mdata in self.conector.conexion.execute(sql):
-
-            i = 0
+        footers = []
+        for gh in master.group_headers:            
+            # find the "footer" for this "header"
+            footer = None
+            for gf in master.group_footers:
+                if gf.id == gh.footer_id:                    
+                    footer = gf
+                    break
+                    
+            footers.append(footer)
+        
+        data = self.conector.conexion.execute(sql).fetchall()
+        n = 0           
+        for mdata in data:
             for i in xrange(len(master.group_headers)):
                 if mdata[master.group_headers[i].field] != values[i]:
                     if not first_gh and master.group_headers[i].options.print_on_new_page:
-                        self.canvas.showPage()
-                        self.newPage()
+                        self.newPage(save=True)
                         y = 0
                         min_y = y
                         
                     first_gh = False
-                        
+                    
+                    # group_header    
                     y, new_page = self.writeBody(master.group_headers[i].header, y, mdata)
                     values[i] = mdata[master.group_headers[i].field]
                     
@@ -241,8 +255,6 @@ class ReportPdf(object):
                         if y < min_y: min_y = y
                     else:
                         min_y = y
-                
-                i += 1
             
             # master:body
             y, new_page = self.writeBody(master.body, y, mdata)
@@ -259,6 +271,26 @@ class ReportPdf(object):
                     if y < min_y: min_y = y
                 else:
                     min_y = y
+
+            for i in xrange(len(master.group_headers) - 1, -1, -1):
+                # exists next record?
+                if len(data) > (n + 1):
+                    next_value = data[n + 1][master.group_headers[i].field]
+                else:
+                    # there's no "next" record
+                    next_value = None
+                    
+                if next_value != values[i]:
+                    # group_footer, if any
+                    if footers[i] != None:
+                        y, new_page = self.writeBody(footers[i].footer, y, mdata)
+                        
+                        if not new_page:
+                            if y < min_y: min_y = y
+                        else:
+                            min_y = y
+                                                                            
+            n += 1
                 
         return min_y, new_page        
     
@@ -307,12 +339,16 @@ class ReportPdf(object):
     def writePageHeader(self, page_header):
         self.canvas.saveState()
         self.canvas.translate(0, page_header.height * mm)
-        self.canvas.rect(0, 0, self.wd, -page_header.height * mm)        
+        if self.debug: self.canvas.rect(0, 0, self.wd, -page_header.height * mm)        
         self.writeBody(page_header.body, 0)
         self.canvas.restoreState()
     
     def writePageFooter(self, page_footer):
-        pass
+        self.canvas.saveState()
+        self.canvas.translate(0, -self.hg)        
+        if self.debug: self.canvas.rect(0, 0, self.wd, -page_footer.height * mm)                    
+        self.writeBody(page_footer.body, 0)
+        self.canvas.restoreState()
     
     def writeGroupHeader(self, group_header, y, data):
         field_value = None
@@ -394,8 +430,7 @@ class ReportPdf(object):
         new_page = False
         y -= (text.top * mm + text.height * mm)
         if y < -self.hg:
-            self.canvas.showPage()
-            self.newPage()
+            self.newPage(save=True)
             y = -(text.top * mm + text.height * mm)
             new_page = True
         

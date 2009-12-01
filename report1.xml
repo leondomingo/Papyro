@@ -34,7 +34,7 @@
         <page_header>
             <id>page_header_1</id>
             <size>
-                <height>30</height>
+                <height>25</height>
                 <width></width>
             </size>
             <options>
@@ -43,7 +43,7 @@
             <body>
                 <text>
                     <id></id>
-                    <value>SOY UN PAGE HEADER!</value>
+                    <value>PAGE HEADER</value>
                     <position>
                         <left>5</left>
                         <top>2</top>
@@ -61,10 +61,10 @@
                 </text>
                 <text>
                     <id></id>
-                    <value>Hola, mundo! (#PAGE_NO# #DATE# #TIME#)</value>
+                    <value>Hola, mundo! (pág: #PAGE_NO# Fecha: #DATE# Hora: #TIME#)</value>
                     <position>
                         <left>20</left>
-                        <top>15</top>
+                        <top>7</top>
                     </position>
                     <size>
                         <height>4</height>
@@ -79,6 +79,54 @@
                 </text>
             </body>
         </page_header>        
+        <page_footer>
+            <id>page_footer_1</id>
+            <size>
+                <height>25</height>
+                <width></width>
+            </size>
+            <options>
+                <print_on_first_page/>
+            </options>
+            <body>
+                <text>
+                    <id></id>
+                    <value>PAGE FOOTER</value>
+                    <position>
+                        <left>5</left>
+                        <top>5</top>
+                    </position>
+                    <size>
+                        <height>4</height>
+                        <width>0</width>
+                    </size>
+                    <font>
+                        <name></name>
+                        <size>20</size>
+                        <color></color>
+                        <style></style>
+                    </font>
+                </text>
+                <text>
+                    <id></id>
+                    <value>(pág: #PAGE_NO# fecha: #DATE# hora: #TIME#)</value>
+                    <position>
+                        <left>15</left>
+                        <top>10</top>
+                    </position>
+                    <size>
+                        <height>4</height>
+                        <width>0</width>
+                    </size>
+                    <font>
+                        <name></name>
+                        <size>9</size>
+                        <color></color>
+                        <style></style>
+                    </font>
+                </text>
+            </body>
+        </page_footer>
         <body>
             <master>
                 <id>master_1</id>
@@ -112,6 +160,7 @@
                 <group_header>
                     <id>gh_cursos</id>
                     <field>CURSOS_NOMBRE</field>
+                    <footer_id>gf_cursos</footer_id>
                     <options>
                         <!--<print_on_new_page/>-->
                     </options>
@@ -140,6 +189,7 @@
                     <id>gh_grupos</id>
                     <field>GRUPOS_NOMBRE</field>
                     <options></options>
+                    <footer_id>gf_grupos</footer_id>
                     <header>
                         <!--<split_on_new_page/>-->
                         <text>
@@ -180,6 +230,52 @@
                         </text>
                     </header>
                 </group_header>
+                <group_footer>
+                    <id>gf_grupos</id>
+                    <body>
+                        <text>
+                            <id></id>
+                            <value>(FOOTER DEL GRUPO "#GRUPOS_NOMBRE#")</value>
+                            <position>
+                                <left>15</left>
+                                <top>5</top>
+                            </position>
+                            <size>
+                                <height>3</height>
+                                <width>0</width>
+                            </size>
+                            <font>
+                                <name>VeraSans</name>
+                                <size>6</size>
+                                <color></color>
+                                <style></style>
+                            </font>                            
+                        </text>
+                    </body>
+                </group_footer>
+                <group_footer>
+                    <id>gf_cursos</id>
+                    <body>
+                        <text>
+                            <id></id>
+                            <value>(FOOTER DEL CURSO "#CURSOS_NOMBRE#")</value>
+                            <position>
+                                <left>5</left>
+                                <top>5</top>
+                            </position>
+                            <size>
+                                <height>3</height>
+                                <width>0</width>
+                            </size>
+                            <font>
+                                <name>VeraSans</name>
+                                <size>8</size>
+                                <color></color>
+                                <style></style>
+                            </font>                            
+                        </text>
+                    </body>
+                </group_footer>                
                 <body>
                     <line>
                         <id>linea_1</id>
