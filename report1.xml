@@ -47,6 +47,7 @@
             <body>
                 <image>
                     <id></id>
+                    <print_if>#PAGE_NO# % 2 != 0</print_if>
                     <filename>img1.jpg</filename>
                     <keep_aspect_ratio/>
                     <position>
@@ -123,10 +124,30 @@
                         <color></color>
                         <style></style>
                     </font>
+                </text>                
+                <text>
+                    <id></id>
+                    <print_if>#PAGE_NO# % 2 != 0</print_if>
+                    <value>pág: #PAGE_NO# Esta es una página IMPAR</value>
+                    <position>
+                        <left>15</left>
+                        <top>10</top>
+                    </position>
+                    <size>
+                        <height>4</height>
+                        <width>0</width>
+                    </size>
+                    <font>
+                        <name>Verdana</name>
+                        <size>9</size>
+                        <color></color>
+                        <style></style>
+                    </font>
                 </text>
                 <text>
                     <id></id>
-                    <value>(pág: #PAGE_NO# fecha: #DATE# hora: #TIME#)</value>
+                    <print_if>#PAGE_NO# % 2 == 0</print_if>
+                    <value>pág: #PAGE_NO# Esta es una página PAR</value>
                     <position>
                         <left>15</left>
                         <top>10</top>
@@ -186,7 +207,7 @@
                         <code>code.set_valor('grupos', 0)</code>
                         <text>
                             <id>111</id>
-                            <value>{{code.get_valor('cursos')}}  #CURSOS_NOMBRE# (#CLIENTES_NOMBRE#)</value>
+                            <value>{{code.get_valor('cursos')}}  {{"#CURSOS_NOMBRE#".strip()}} (#CLIENTES_NOMBRE#)</value>
                             <position>
                                 <left>5</left>
                                 <top>2</top>
@@ -214,7 +235,7 @@
                         <code>code.sum_valor('grupos', 1); code.set_valor('alumnos', 0)</code>
                         <text>
                             <id></id>
-                            <value>{{code.get_valor('cursos') ** 2}}__{{code.get_valor('cursos')}}.{{code.get_valor('grupos')}} #GRUPOS_NOMBRE#</value>
+                            <value>El cuadrado de {{code.get_valor('cursos')}} es {{code.get_valor('cursos') ** 2}}____{{code.get_valor('cursos')}}.{{code.get_valor('grupos')}} #GRUPOS_NOMBRE#</value>
                             <position>
                                 <left>15</left>
                                 <top>2</top>
@@ -232,7 +253,7 @@
                         </text>
                         <text>
                             <id></id>
-                            <value>#GRUPOS_FECHAINICIO# - #GRUPOS_FECHAFIN#</value>
+                            <value>{{'1º, 2º ó 3º' if code.get_valor('grupos') in [1, 2, 3] else '4º en adelante'}}  #GRUPOS_FECHAINICIO# - #GRUPOS_FECHAFIN#</value>
                             <position>
                                 <left>15</left>
                                 <top>5</top>
@@ -253,6 +274,7 @@
                 <group_footer>
                     <id>gf_grupos</id>
                     <body>
+                        <print_if>code.get_valor('alumnos') > 0</print_if>
                         <text>
                             <id></id>
                             <value>Nº de alumnos = {{code.get_valor('alumnos')}} </value>
@@ -352,7 +374,7 @@
                         <code>code.sum_valor('alumnos', 1)</code>
                         <text>
                             <id>txt_alumno</id>
-                            <value>#ALUMNOS_ALIAS#</value>
+                            <value>{{code.get_valor('alumnos')}}. #ALUMNOS_ALIAS#</value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>

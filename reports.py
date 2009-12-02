@@ -483,6 +483,7 @@ class Text(PrintableItem):
         PrintableItem.__init__(self)        
         self.id = id or ''
         self.value = None
+        self.print_if = None
         
     def __repr__(self):
         return '"%s" = "%s"' % (self.id, self.value or '')
@@ -492,6 +493,7 @@ class Text(PrintableItem):
             '<text>\n' + \
             '  <id>' + self.id + '</id>\n' + \
             '  <value>' + (self.value or '') + '</value>\n' + \
+            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
             ReportItem.getxml(self) + \
             '</text>\n'
             
@@ -502,7 +504,9 @@ class Text(PrintableItem):
         texto = etree.fromstring(valor)
         
         self.id = texto.find('id').text or ''
-        self.value = texto.find('value').text or ''        
+        self.value = texto.find('value').text or ''
+        if texto.find('print_if') != None:
+            self.print_if = texto.find('print_if').text        
             
         ReportItem.setxml(self, valor)
             
@@ -516,7 +520,8 @@ class Line(PrintableItem):
         self.x1 = 0
         self.y1 = 0
         self.x2 = 0
-        self.y2 = 0        
+        self.y2 = 0
+        self.print_if = None
         
     def getxml(self):
         valor = \
@@ -526,6 +531,7 @@ class Line(PrintableItem):
             '  <y1>' + str(self.y1) + '</y1>\n' + \
             '  <x2>' + str(self.x2) + '</x2>\n' + \
             '  <y2>' + str(self.y2) + '</y2>\n' + \
+            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
             ReportItem.getxml(self) + \
             '</line>\n'
             
@@ -540,6 +546,9 @@ class Line(PrintableItem):
         self.y1 = int(line.find('y1').text)
         self.x2 = int(line.find('x2').text)
         self.y2 = int(line.find('y2').text)
+        
+        if line.find('print_if') != None:
+            self.print_if = line.find('print_if').text
             
         ReportItem.setxml(self, valor)
             
@@ -551,6 +560,7 @@ class Image(PrintableItem):
         self.id = id or ''
         self.filename = None
         self.keep_aspect_ratio = False
+        self.print_if = None
         
     def getxml(self):
         valor = \
@@ -558,6 +568,7 @@ class Image(PrintableItem):
             '  <id>' + self.id + '</id>\n' + \
             '  <filename>' + (self.filename or '') + '</filename>\n' + \
             ('  <keep_aspect_ratio/>\n' if self.keep_aspect_ratio else '') + \
+            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
             ReportItem.getxml(self) + \
             '</image>\n'
             
@@ -570,6 +581,8 @@ class Image(PrintableItem):
         self.id = image.find('id').text or ''
         self.filename = image.find('filename').text or ''
         self.keep_aspect_ratio = image.find('keep_aspect_ratio') != None
+        if image.find('print_if') != None:
+            self.print_if = image.find('print_if').text
             
         ReportItem.setxml(self, valor)
             
@@ -580,12 +593,14 @@ class TextFile(PrintableItem):
         PrintableItem.__init__(self)
         self.id = id
         self.name = None
+        self.print_if = None
         
     def getxml(self):
         value = \
             '<text_file>\n' + \
             '  <id>' + (self.id or '') + '</id>\n' + \
             '  <name>' + (self.name or '') + '</name>\n' + \
+            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
             '</text_file>'
             
         return value
@@ -596,6 +611,9 @@ class TextFile(PrintableItem):
         
         self.id = tf.find('id').text or ''
         self.name = tf.find('name').text or ''
+        
+        if tf.find('print_if'):
+            self.print_if = tf.find('print_if').text
         
     xml = property(getxml, setxml)
     
@@ -655,6 +673,7 @@ class Body(NotPrintableItem):
         NotPrintableItem.__init__(self)        
         self.items = [] # lista de "ReportItem"
         self.split_on_new_page = False
+        self.print_if = None
         
     def getxmlitems(self):
         valor = ''
@@ -667,6 +686,7 @@ class Body(NotPrintableItem):
         valor = \
             '<body>\n' + \
             ('  <split_on_new_page/>\n' if self.split_on_new_page else '') + \
+            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
             self.getxmlitems() + \
             '</body>\n'
             
@@ -676,7 +696,9 @@ class Body(NotPrintableItem):
         self.items = []
         bd = etree.fromstring(valor)
         
-        self.split_on_new_page = bd.find('split_on_new_page') != None            
+        self.split_on_new_page = bd.find('split_on_new_page') != None
+        if bd.find('print_if') != None:
+            self.print_if = bd.find('print_if').text                        
         
         for rep_item in bd.iterchildren():
             

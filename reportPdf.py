@@ -183,6 +183,23 @@ class ReportPdf(object):
             self.writePageFooter(page.page_footer)                
     
     def writeBody(self, body, y, mdata=None, ddata=None):
+
+        # check "print_if" condition
+        if (body.print_if or '') != '':
+            # apply "constants"
+            cond = self.apply_constants(body.print_if)
+            
+            # apply "parameters"
+            cond = self.apply_parameters(cond)
+            
+            # apply "masterdata"
+            cond = self.apply_data(cond, mdata)
+            
+            # apply "detail data"
+            cond = self.apply_data(cond, ddata)
+            
+            if not eval(cond):                
+                return y, False            
                 
         # all the items are "Text"?
         only_text = True
@@ -213,7 +230,15 @@ class ReportPdf(object):
                         text_items.append(item)
                 else:
                     # execute "code"
-                    if item.code != '': exec(item.code)
+                    if item.code != '':
+                        # apply "constants"                        
+                        _code = self.apply_constants(item.code)
+                        
+                        # apply "parameters"
+                        _code = self.apply_parameters(_code)
+                        
+                        if self.debug: print 'executing...%s' % _code
+                        exec(_code)
                     
             if new_page and not body.split_on_new_page:
                 self.newPage(save=True)                
@@ -462,6 +487,23 @@ class ReportPdf(object):
         
         return text
     
+    def apply_parameters(self, text):
+        out = text
+        for par in self.report.params.params:
+            parameter = '#%s#' % par[0]
+            out = out.replace(parameter, par[1])
+            
+        return out
+    
+    def apply_data(self, text, data):
+        out = text
+        if data != None:
+            for k in data.keys():
+                parameter = '#%s#' % str(k)
+                out = out.replace(parameter, str(data[k]))
+                
+        return out
+    
     def execute_code(self, text):
         
         text_out = ''
@@ -497,29 +539,53 @@ class ReportPdf(object):
             n += 1
             
         return text_out
+    
+#    def inside_code(self, text, parameter):
+#        
+#        inside = False
+#        i = text.find('{{')
+#        while i != -1:
+#            p = text[i+2:].find('parameter')
+#                
+#        
+#        return inside
+#    
+#    def quote_string(self, value):
+#        
+#        return "'%s'" % value.replace("'", "\\'")
                     
     def writeText(self, text, y, mdata=None, ddata=None):
         
+        # check "print_if" condition
+        if (text.print_if or '') != '':
+            # apply "constants"
+            cond = self.apply_constants(text.print_if)
+            
+            # apply "parameters"
+            cond = self.apply_parameters(cond)
+            
+            # apply "master data"
+            cond = self.apply_data(cond, mdata)
+            
+            # apply "detail data"
+            cond = self.apply_data(cond, ddata)
+                        
+            if not eval(cond):
+                return y, False
+        
         out = text.value
         
+        # constants        
         out = self.apply_constants(out)
-                
+        
         # master
-        if mdata != None:
-            for k in mdata.keys():
-                parameter = '#%s#' % str(k)
-                out = out.replace(parameter, str(mdata[k]))
-
+        out = self.apply_data(out, mdata)
+        
         # detail
-        if ddata != None:
-            for k in ddata.keys():
-                parameter = '#%s#' % str(k)
-                out = out.replace(parameter, str(ddata[k]))
-
-        # params
-        for par in self.report.params.params:
-            parameter = '#%s#' % par[0]
-            out = out.replace(parameter, par[1])
+        out = self.apply_data(out, ddata)
+        
+        # parameters
+        out = self.apply_parameters(out)
         
         # code
         out = self.execute_code(out)
@@ -571,6 +637,17 @@ class ReportPdf(object):
     
     def writeLine(self, line, y):
         
+        # check "print_if" condition
+        if (line.print_if or '') != '':
+            # apply "constants"
+            cond = self.apply_constants(line.print_if)
+            
+            # apply "parameters"
+            cond = self.apply_parameters(cond)            
+                                    
+            if not eval(cond):
+                return y
+        
         if self.debug: 
             print 'Line: x1=%d, y1=%d, x2=%d, y2=%d' % \
                 (line.x1, line.y1, line.x2, line.y2)
@@ -587,6 +664,17 @@ class ReportPdf(object):
         return min_y
     
     def writeImage(self, image, y):
+        
+        # check "print_if" condition
+        if (image.print_if or '') != '':
+            # apply "constants"
+            cond = self.apply_constants(image.print_if)
+            
+            # apply "parameters"
+            cond = self.apply_parameters(cond)
+            
+            if not eval(cond):
+                return y, False
         
         y -= (image.top + image.height) * mm
         
