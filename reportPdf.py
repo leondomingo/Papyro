@@ -7,6 +7,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import reports
 import os.path
+import sys
 from datetime import datetime
 
 class ReportPdf(object):
@@ -22,6 +23,14 @@ class ReportPdf(object):
         self.cur_page = None
         self.page_no = 0
         self.debug = False
+        
+        sys.path.append(self.report.path)
+        
+        # scripts
+        for sc in self.report.scripts:
+            #prueba = __import__('prueba', globals(), locals())
+            global code
+            code = __import__(os.path.splitext(sc.file)[0], globals(), locals())        
         
     def newPage(self, save=False):
         
@@ -141,11 +150,11 @@ class ReportPdf(object):
            
         self.cur_page = self.report.pages[0]
         self.newPage()
-        first_page = True
+        first_page = True        
         
         # title
         self.writeReportTitle(self.report.title)
-        
+                
         # pages
         for page in self.report.pages:
             self.cur_page = page
@@ -178,7 +187,8 @@ class ReportPdf(object):
         # all the items are "Text"?
         only_text = True
         for item in body.items:            
-            if not isinstance(item, reports.Text) and not isinstance(item, reports.Image):
+            if not isinstance(item, reports.Text) and not isinstance(item, reports.Image) and \
+            not isinstance(item, reports.Code):
                 only_text = False
                 break
                     
@@ -195,11 +205,15 @@ class ReportPdf(object):
             text_items = []
             text_items_next_page = []
             for item in body.items:
-                y, new_page = self.getTextHeight(item, y0)
-                if new_page:
-                    text_items_next_page.append((item, y))
+                if not isinstance(item, reports.Code):
+                    y, new_page = self.getTextHeight(item, y0)
+                    if new_page:
+                        text_items_next_page.append((item, y))
+                    else:
+                        text_items.append(item)
                 else:
-                    text_items.append(item)
+                    # execute "code"
+                    if item.code != '': exec(item.code)
                     
             if new_page and not body.split_on_new_page:
                 self.newPage(save=True)                
@@ -446,14 +460,50 @@ class ReportPdf(object):
         # TIME
         text = text.replace('#TIME#', datetime.now().strftime('%H:%M:%S'))
         
-        return text    
+        return text
     
+    def execute_code(self, text):
+        
+        text_out = ''
+        scripts = []
+        n = 0
+        j = -2
+        i = text.find('{{')
+        while i != -1:
+            text_out += text[(j+2):i]
+            j = text[(i+2):].find('}}')
+            
+            if j != -1:
+                j += (i + 2)
+                scripts.append(text[(i+2):j])
+                text_out += '#SCRIPT%d#' % (n + 1)
+                
+                i = text[j+2:].find('{{') + j + 2
+            else:
+                j = i - 1
+                i = -1                
+            
+            n += 1
+        
+        i = len(text)
+        text_out += text[(j+2):i]
+        
+        n = 0
+        for sc in scripts:
+            script_result = eval(sc)
+            script_name = '#SCRIPT%d#' % (n + 1)
+            text_out = text_out.replace(script_name, str(script_result))
+            
+            n += 1
+            
+        return text_out
+                    
     def writeText(self, text, y, mdata=None, ddata=None):
         
         out = text.value
         
         out = self.apply_constants(out)
-        
+                
         # master
         if mdata != None:
             for k in mdata.keys():
@@ -470,6 +520,9 @@ class ReportPdf(object):
         for par in self.report.params.params:
             parameter = '#%s#' % par[0]
             out = out.replace(parameter, par[1])
+        
+        # code
+        out = self.execute_code(out)
         
         # print content thru "stdout"
         if self.debug: print out, y - (text.top * mm + text.height * mm), text.top, text.height
@@ -537,9 +590,9 @@ class ReportPdf(object):
         
         y -= (image.top + image.height) * mm
         
-        self.canvas.drawImage(image.filename, image.left * mm, y, 
+        self.canvas.drawImage(os.path.join(self.report.path, image.filename), image.left * mm, y, 
                               image.width * mm, image.height * mm, 
                               preserveAspectRatio=image.keep_aspect_ratio) #, mask, preserveAspectRatio, anchor
         
         return y, False
-        
+    

@@ -29,6 +29,9 @@
         <id>title_1</id>
         <body></body>
     </report_title>
+    <script>
+        <file>report1.py</file>
+    </script>
     <page>
         <id>page_1</id>
         <number>1</number>
@@ -179,9 +182,11 @@
                         <__print_on_new_page/>
                     </options>
                     <header>
+                        <code>code.sum_valor('cursos', 1)</code>
+                        <code>code.set_valor('grupos', 0)</code>
                         <text>
                             <id>111</id>
-                            <value>#CURSOS_NOMBRE# (#CLIENTES_NOMBRE#)</value>
+                            <value>{{code.get_valor('cursos')}}  #CURSOS_NOMBRE# (#CLIENTES_NOMBRE#)</value>
                             <position>
                                 <left>5</left>
                                 <top>2</top>
@@ -196,7 +201,7 @@
                                 <color></color>
                                 <style></style>
                             </font>
-                        </text>                        
+                        </text>                       
                     </header>
                 </group_header>
                 <group_header>
@@ -206,9 +211,10 @@
                     <footer_id>gf_grupos</footer_id>
                     <header>
                         <!--<split_on_new_page/>-->
+                        <code>code.sum_valor('grupos', 1); code.set_valor('alumnos', 0)</code>
                         <text>
                             <id></id>
-                            <value>#GRUPOS_NOMBRE#</value>
+                            <value>{{code.get_valor('cursos') ** 2}}__{{code.get_valor('cursos')}}.{{code.get_valor('grupos')}} #GRUPOS_NOMBRE#</value>
                             <position>
                                 <left>15</left>
                                 <top>2</top>
@@ -249,9 +255,9 @@
                     <body>
                         <text>
                             <id></id>
-                            <value>(FOOTER DEL GRUPO "#GRUPOS_NOMBRE#")</value>
+                            <value>Nº de alumnos = {{code.get_valor('alumnos')}} </value>
                             <position>
-                                <left>15</left>
+                                <left>18</left>
                                 <top>5</top>
                             </position>
                             <size>
@@ -260,7 +266,7 @@
                             </size>
                             <font>
                                 <name>VeraSans</name>
-                                <size>6</size>
+                                <size>5</size>
                                 <color></color>
                                 <style></style>
                             </font>                            
@@ -272,9 +278,9 @@
                     <body>
                         <text>
                             <id></id>
-                            <value>(FOOTER DEL CURSO "#CURSOS_NOMBRE#")</value>
+                            <value>Nº de grupos = {{code.get_valor('grupos')}}</value>
                             <position>
-                                <left>5</left>
+                                <left>8</left>
                                 <top>5</top>
                             </position>
                             <size>
@@ -282,8 +288,8 @@
                                 <width>0</width>
                             </size>
                             <font>
-                                <name>VeraSans</name>
-                                <size>8</size>
+                                <name>Arial</name>
+                                <size>6</size>
                                 <color></color>
                                 <style></style>
                             </font>                            
@@ -343,6 +349,7 @@
                         </body>
                     </header>
                     <body>
+                        <code>code.sum_valor('alumnos', 1)</code>
                         <text>
                             <id>txt_alumno</id>
                             <value>#ALUMNOS_ALIAS#</value>

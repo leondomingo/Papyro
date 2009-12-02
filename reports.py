@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from lxml import etree
+import os.path
 
 class Font(object):
     def __init__(self):
@@ -114,6 +115,37 @@ class PrintableItem(ReportItem):
 class NotPrintableItem(ReportItem):
     def __init__(self):
         ReportItem.__init__(self)
+        
+class Script(object):
+    def __init__(self):
+        self.file = None
+        
+    def getxml(self):
+        value = \
+            '<script>\n' + \
+            '  <file>' + (self.file or '') + '</file>\n' + \
+            '</script>\n'
+            
+        return value
+    
+    def setxml(self, value):
+        scr = etree.fromstring(value)        
+        self.file = scr.find('file').text or ''
+        
+    xml = property(getxml, setxml)
+    
+class Code(object):
+    def __init__(self):
+        self.code = None
+        
+    def getxml(self):
+        return '<code>' + (self.code or '') + '</code>\n'
+    
+    def setxml(self, value):
+        co = etree.fromstring(value)
+        self.code = co.text or ''
+        
+    xml = property(getxml, setxml)        
         
 class PageHeaderOptions(object):
     def __init__(self):
@@ -689,7 +721,12 @@ class Body(NotPrintableItem):
                 self.items.append(line)
                 
                 line.xml = etree.tostring(rep_item)
-
+                
+            elif rep_item.tag == 'code':
+                code = Code()
+                self.items.append(code)
+                
+                code.xml = etree.tostring(rep_item)
                 
     xml = property(getxml, setxml)
     
@@ -956,8 +993,9 @@ class ReportTitle(NotPrintableItem):
         
 
 class Report(object):    
-    def __init__(self, name=None, xml=None):
-        self.name = name or ''        
+    def __init__(self, name=None, reportfile=None, xml=None):
+        self.name = name or ''
+        self.filename = reportfile        
         self.pages = [] # lista de "ReportPage"
         self.title = ReportTitle(None)
         self.paper_size = None
@@ -969,9 +1007,21 @@ class Report(object):
         self.font = Font()
         self.params = Parameters()
         self.subreports = []
+        self.scripts = []
         self.switch_between_pages = False
         
-        self.xml = xml
+        self.path = '.'
+        if self.filename != None:
+            self.path = os.path.dirname(self.filename)
+            f_xml = file(self.filename, 'r')
+            try:
+                self.xml = f_xml.read()
+                
+            finally:
+                f_xml.close()
+        
+        else:
+            self.xml = xml
         
     def __repr__(self):
         return '"%s" (with %d pages)' % (self.name, len(self.pages))
@@ -987,6 +1037,13 @@ class Report(object):
         valor = ''
         for sub in self.subreports:
             valor += sub.xml
+            
+        return valor
+    
+    def getxmlscripts(self):
+        valor = ''
+        for scr in self.scripts:
+            valor += scr.xml
             
         return valor
         
@@ -1012,6 +1069,7 @@ class Report(object):
             self.params.xml + \
             self.title.xml + \
             self.getxmlsubreports() + \
+            self.getxmlscripts() + \
             self.getxmlpages() + \
             '</report>\n'
             
@@ -1049,6 +1107,13 @@ class Report(object):
             subreport.xml = etree.tostring(s)
             
             self.subreports.append(subreport)
+            
+        self.scripts = []
+        for sc in report.iterchildren('script'):
+            script = Script()
+            script.xml = etree.tostring(sc)
+            
+            self.scripts.append(script)
             
         self.pages = []
         for p in report.iterchildren('page'):
