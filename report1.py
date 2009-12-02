@@ -27,4 +27,4 @@ def reset():
         _valores[k] = 0
 
 def get_date(formato):
-    return datetime.today().strftime(formato)    
+    return datetime.today().strftime(formato)

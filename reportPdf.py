@@ -5,16 +5,15 @@ import reportlab.lib.pagesizes as pagesizes
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportBase import ReportBase
 import reports
 import os.path
 import sys
-from datetime import datetime
 
-class ReportPdf(object):
+class ReportPdf(ReportBase):
     
     def __init__(self, report, conector):
-        self.report = report
-        self.conector = conector
+        ReportBase.__init__(self, report, conector)
         self.canvas = None
         self.wd0 = 0
         self.hg0 = 0
@@ -22,15 +21,14 @@ class ReportPdf(object):
         self.wd = 0
         self.cur_page = None
         self.page_no = 0
-        self.debug = False
         
         sys.path.append(self.report.path)
         
         # scripts
         for sc in self.report.scripts:
             #prueba = __import__('prueba', globals(), locals())
-            global code
-            code = __import__(os.path.splitext(sc.file)[0], globals(), locals())        
+            global PaCODE
+            PaCODE = __import__(os.path.splitext(sc.file)[0], globals(), locals())        
         
     def newPage(self, save=False):
         
@@ -483,86 +481,6 @@ class ReportPdf(object):
             
         return y, new_page
     
-    def apply_constants(self, text):
-        
-        # PAGE_NO
-        text = text.replace('#PAGE_NO#', str(self.page_no))
-        
-        # DATE
-        text = text.replace('#DATE#', datetime.now().strftime('%d/%m/%Y'))
-        
-        # TIME
-        text = text.replace('#TIME#', datetime.now().strftime('%H:%M:%S'))
-        
-        return text
-    
-    def apply_parameters(self, text):
-        out = text
-        for par in self.report.params.params:
-            parameter = '#%s#' % par[0]
-            out = out.replace(parameter, par[1])
-            
-        return out
-    
-    def apply_data(self, text, data):
-        out = text
-        if data != None:
-            for k in data.keys():
-                parameter = '#%s#' % str(k)
-                out = out.replace(parameter, str(data[k]))
-                
-        return out
-    
-    def execute_code(self, text):
-        
-        text_out = ''
-        scripts = []
-        n = 0
-        j = -2
-        i = text.find('{{')
-        while i != -1:
-            text_out += text[(j+2):i]
-            j = text[(i+2):].find('}}')
-            
-            if j != -1:
-                j += (i + 2)
-                scripts.append(text[(i+2):j])
-                text_out += '#SCRIPT%d#' % (n + 1)
-                
-                i = text[j+2:].find('{{') + j + 2
-            else:
-                j = i - 1
-                i = -1                
-            
-            n += 1
-        
-        i = len(text)
-        text_out += text[(j+2):i]
-        
-        n = 0
-        for sc in scripts:
-            script_result = eval(sc)
-            script_name = '#SCRIPT%d#' % (n + 1)
-            text_out = text_out.replace(script_name, str(script_result))
-            
-            n += 1
-            
-        return text_out
-    
-#    def inside_code(self, text, parameter):
-#        
-#        inside = False
-#        i = text.find('{{')
-#        while i != -1:
-#            p = text[i+2:].find('parameter')
-#                
-#        
-#        return inside
-#    
-#    def quote_string(self, value):
-#        
-#        return "'%s'" % value.replace("'", "\\'")
-                    
     def writeText(self, text, y, mdata=None, ddata=None):
         
         # check "print_if" condition

@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
+from reportBase import ReportBase
 
 import reports
 import cStringIO
 import os.path
 
-CONSTANTS = {'CR': '\n'}
-
-class ReportPlainText(object):
+class ReportPlainText(ReportBase):
     
     def __init__(self, report, conector):
         self.report = report
         self.conector = conector
         self.ftext = cStringIO.StringIO()
         self.debug = False
+        self.page_no = 0
         
     def writeReport(self, text_file=None, report_path=None, params=None, debug=False):
         
@@ -200,26 +200,19 @@ class ReportPlainText(object):
         out = text.value
 
         # constants
-        for k, v in CONSTANTS.iteritems():
-            parameter = '#%s#' % k
-            out = out.replace(parameter, v)
+        out = self.apply_constants(out)
         
         # master
-        if mdata != None:
-            for k in mdata.keys():
-                parameter = '#%s#' % str(k)
-                out = out.replace(parameter, str(mdata[k]))
+        out = self.apply_data(out, mdata)
 
         # detail
-        if ddata != None:
-            for k in ddata.keys():
-                parameter = '#%s#' % str(k)
-                out = out.replace(parameter, str(ddata[k]))
+        out = self.apply_data(out, ddata)
 
         # params
-        for par in self.report.params.params:
-            parameter = '#%s#' % par[0]
-            out = out.replace(parameter, par[1])
+        out = self.apply_parameters(out)
+        
+        # code
+        out = self.execute_code(out)        
             
         # subreports
         for subreport in self.report.subreports:
@@ -240,27 +233,20 @@ class ReportPlainText(object):
             ft.close()
             
         # constants
-        for k, v in CONSTANTS.iteritems():
-            parameter = '#%s#' % k
-            out = out.replace(parameter, v)            
+        out = self.apply_constants(out)
         
         # master
-        if mdata != None:
-            for k in mdata.keys():
-                parameter = '#%s#' % str(k)
-                out = out.replace(parameter, str(mdata[k]))
+        out = self.apply_data(out, mdata)
 
         # detail
-        if ddata != None:
-            for k in ddata.keys():
-                parameter = '#%s#' % str(k)
-                out = out.replace(parameter, str(ddata[k]))
+        out = self.apply_data(out, ddata)
 
         # params
-        for par in self.report.params.params:
-            parameter = '#%s#' % par[0]            
-            out = out.replace(parameter, par[1])
-            
+        out = self.apply_parameters(out)
+        
+        # code
+        out = self.execute_code(out)
+                    
         # subreports
         for subreport in self.report.subreports:
             parameter = '#SUBREPORT %s#' % subreport.id 
