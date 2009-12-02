@@ -204,7 +204,9 @@ class ReportPdf(object):
         # all the items are "Text"?
         only_text = True
         for item in body.items:            
-            if not isinstance(item, reports.Text) and not isinstance(item, reports.Image) and \
+            if not isinstance(item, reports.Text) and \
+            not isinstance(item, reports.Image) and \
+            not isinstance(item, reports.Line) and \
             not isinstance(item, reports.Code):
                 only_text = False
                 break
@@ -228,6 +230,7 @@ class ReportPdf(object):
                         text_items_next_page.append((item, y))
                     else:
                         text_items.append(item)
+                        
                 else:
                     # execute "code"
                     if item.code != '':
@@ -253,6 +256,9 @@ class ReportPdf(object):
                 elif isinstance(item, reports.Image):
                     y, new_page = self.writeImage(item, y0)
                     
+                elif isinstance(item, reports.Line):
+                    y = self.writeLine(item, y0)
+                    
                 if y < min_y: min_y = y                
             
             if text_items_next_page != []:
@@ -269,6 +275,9 @@ class ReportPdf(object):
                     
                     elif isinstance(item, reports.Image):
                         y = self.writeImage(item, 0)[0]    
+
+                    elif isinstance(item, reports.Line):
+                        y = self.writeLine(item, 0)
                     
                     if y < min_y: min_y = y
                 
@@ -290,8 +299,8 @@ class ReportPdf(object):
                     y, new_page = self.writeText(item, y, mdata, ddata)
                     
                 # Image
-                elif isinstance(item, reports.Image):
-                    y, new_page = self.writeImage(item, y)
+#                elif isinstance(item, reports.Image):
+#                    y, new_page = self.writeImage(item, y)
                 
                 if not new_page:
                     if y < min_y: min_y = y
@@ -646,20 +655,23 @@ class ReportPdf(object):
             cond = self.apply_parameters(cond)            
                                     
             if not eval(cond):
-                return y
+                return y       
         
-        if self.debug: 
-            print 'Line: x1=%d, y1=%d, x2=%d, y2=%d' % \
-                (line.x1, line.y1, line.x2, line.y2)
+        y1 = y
+        if line.y1 != None: y1 = y -(line.y1 * mm)
         
-        self.canvas.saveState()
-        self.canvas.translate(0, y)
-        self.canvas.line(line.x1, line.y1, line.x2, line.y2)
-        self.canvas.restoreState()
+        y2 = y
+        if line.y2 != None: y2 = y -(line.y2 * mm)
         
+#        if self.debug:
+#        print 'Line: x1=%2.2f, y1=%2.2f, x2=%2.2f, y2=%2.2f' % \
+#            (line.x1 * mm, y1, line.x2 * mm, y2)
+        
+        self.canvas.line(line.x1 * mm, y1, line.x2 * mm, y2)
+
         min_y = y
-        if line.y1 < min_y: min_y = line.y1
-        if line.y2 < min_y: min_y = line.y2
+#        if y1 < min_y: min_y = y1
+#        if y2 < min_y: min_y = y2
         
         return min_y
     

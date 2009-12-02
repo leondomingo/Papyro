@@ -7,11 +7,11 @@ _valores = {}
 def esto_es_una_prueba():
     return '***ESTO ES UNA PRUEBA'
 
-def sum_valor(tipo, horas):
+def sum_valor(tipo, valor):
     if not _valores.has_key(tipo):
         _valores[tipo] = 0
         
-    _valores[tipo] += horas
+    _valores[tipo] += valor
 
 def set_valor(tipo, valor):
     _valores[tipo] = valor

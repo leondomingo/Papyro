@@ -59,6 +59,26 @@
                         <width>70</width>
                     </size>
                 </image>
+                <line>
+                    <id></id>
+                    <x1>0</x1>
+                    <y1>7</y1>
+                    <x2>135</x2>
+                    <y2>7</y2>
+                </line>
+                <text>
+                    <id></id>
+                    <print_if>#PAGE_NO# % 2 == 0</print_if>
+                    <value>Aquí antes había un tigre...</value>
+                    <position>
+                        <left>130</left>
+                        <top>0</top>
+                    </position>
+                    <size>
+                        <height>3</height>
+                        <width></width>
+                    </size>
+                </text>
                 <text>
                     <id></id>
                     <value>PAGE HEADER</value>
@@ -205,9 +225,16 @@
                     <header>
                         <code>code.sum_valor('cursos', 1)</code>
                         <code>code.set_valor('grupos', 0)</code>
+                        <line>
+                            <id></id>
+                            <x1>0</x1>
+                            <y1>9</y1>
+                            <x2>100</x2>
+                            <y2>9</y2>
+                        </line>
                         <text>
                             <id>111</id>
-                            <value>{{code.get_valor('cursos')}}  {{"#CURSOS_NOMBRE#".strip()}} (#CLIENTES_NOMBRE#)</value>
+                            <value>{{code.get_valor('cursos')}} {{"#CURSOS_NOMBRE#".strip().lower()}} (#CLIENTES_NOMBRE#)</value>
                             <position>
                                 <left>5</left>
                                 <top>2</top>
@@ -319,13 +346,6 @@
                     </body>
                 </group_footer>                
                 <body>
-                    <line>
-                        <id>linea_1</id>
-                        <x1>20</x1>
-                        <y1>3</y1>
-                        <x2>150</x2>
-                        <y2>3</y2>
-                    </line>
                 </body>
                 <detail>
                     <id>detail_1</id>
@@ -392,7 +412,7 @@
                         </text>
                         <text>
                             <id>txt_alumno</id>
-                            <value>(desde #AEG_FECHAINICIO# hasta #AEG_FECHAFIN#)</value>
+                            <value>{{"(desde #AEG_FECHAINICIO# hasta #AEG_FECHAFIN#)".upper()}} {{code.get_date('%d/%m')}}</value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>

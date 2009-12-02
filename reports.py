@@ -515,22 +515,22 @@ class Text(PrintableItem):
 class Line(PrintableItem):
     def __init__(self, id=None):
         PrintableItem.__init__(self)        
-        self.id = id or ''
+        self.id = id
         # en mm
         self.x1 = 0
-        self.y1 = 0
+        self.y1 = None
         self.x2 = 0
-        self.y2 = 0
+        self.y2 = None
         self.print_if = None
         
     def getxml(self):
         valor = \
             '<line>\n' + \
-            '  <id>' + self.id + '</id>\n' + \
+            '  <id>' + (self.id or '') + '</id>\n' + \
             '  <x1>' + str(self.x1) + '</x1>\n' + \
-            '  <y1>' + str(self.y1) + '</y1>\n' + \
+            '  <y1>' + str(self.y1 or '') + '</y1>\n' + \
             '  <x2>' + str(self.x2) + '</x2>\n' + \
-            '  <y2>' + str(self.y2) + '</y2>\n' + \
+            '  <y2>' + str(self.y2 or '') + '</y2>\n' + \
             '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
             ReportItem.getxml(self) + \
             '</line>\n'
@@ -543,12 +543,32 @@ class Line(PrintableItem):
         
         self.id = line.find('id').text or ''
         self.x1 = int(line.find('x1').text)
-        self.y1 = int(line.find('y1').text)
+        if line.find('y1').text != None:
+            self.y1 = int(line.find('y1').text)
+        else:
+            self.y1 = None
+            
         self.x2 = int(line.find('x2').text)
-        self.y2 = int(line.find('y2').text)
+        if line.find('y2').text != None:
+            self.y2 = int(line.find('y2').text)
         
         if line.find('print_if') != None:
             self.print_if = line.find('print_if').text
+            
+        self.width = abs(self.x2 - self.x1)    
+        
+        if self.x2 > self.x1:
+            self.left = self.x1
+        else:
+            self.left = self.x2
+        
+        y1 = self.y1 or 0
+        y2 = self.y2 or 0
+        self.height = abs(y2 - y1)    
+        if y2 > y1:
+            self.top = y1            
+        else:
+            self.top = y2
             
         ReportItem.setxml(self, valor)
             
