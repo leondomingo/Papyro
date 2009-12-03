@@ -10,6 +10,7 @@ class ReportBase(object):
         self.report = report
         self.conector = conector
         self.debug = False
+        self.page_no = 0
         
         sys.path.append(self.report.path)
         
@@ -54,7 +55,43 @@ class ReportBase(object):
                 
         return out
     
-    def execute_code(self, text):
+    def check_condition(self, cond, mdata=None, ddata=None):
+        """Check the condition of the Python code 'cond' and returns True or False.
+        If 'cond' is empty returns True."""
+        if (cond or '') != '':
+            # apply "constants"
+            cond = self.apply_constants(cond)
+            
+            # apply "parameters"
+            cond = self.apply_parameters(cond)
+            
+            # apply "masterdata"
+            cond = self.apply_data(cond, mdata)
+            
+            # apply "detail data"
+            cond = self.apply_data(cond, ddata)
+            
+            #print 'evaluating...%s' % cond
+            return eval(cond)
+        
+        else:
+            return True
+    
+    def execute_code(self, item):
+        """Execute the code of the <code> 'item'"""
+        if item.code != '':            
+            # apply "constants"                        
+            _code = self.apply_constants(item.code)
+            
+            # apply "parameters"
+            _code = self.apply_parameters(_code)
+            
+            if self.debug: print 'executing...%s' % _code
+            exec(_code)    
+    
+    def compile_text(self, text):
+        """Replace every piece of Python code inside {{...}} with the returning
+        value of its execution"""
         
         text_out = ''
         scripts = []

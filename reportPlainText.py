@@ -8,11 +8,8 @@ import os.path
 class ReportPlainText(ReportBase):
     
     def __init__(self, report, conector):
-        self.report = report
-        self.conector = conector
+        ReportBase.__init__(self, report, conector)
         self.ftext = cStringIO.StringIO()
-        self.debug = False
-        self.page_no = 0
         
     def writeReport(self, text_file=None, report_path=None, params=None, debug=False):
         
@@ -70,6 +67,10 @@ class ReportPlainText(ReportBase):
             self.writePageFooter(page.page_footer)
     
     def writeBody(self, body, mdata=None, ddata=None):
+        
+        # check "print_if" condition
+        if not self.check_condition(body.print_if, mdata, ddata):
+            return        
                 
         for item in body.items:
             # Master
@@ -86,7 +87,12 @@ class ReportPlainText(ReportBase):
                 
             # TextFile
             elif isinstance(item, reports.TextFile):
-                self.writeTextFile(item, mdata, ddata)                
+                self.writeTextFile(item, mdata, ddata)
+                
+            # Code
+            elif isinstance(item, reports.Code):
+                # execute "code"                
+                self.execute_code(item)
             
     def writeMaster(self, master):
         
@@ -105,23 +111,49 @@ class ReportPlainText(ReportBase):
             
         if self.debug: print sql
             
+        # group headers
         values = [None] * len(master.group_headers)
-        for mdata in self.conector.conexion.execute(sql):
-            
-            i = 0
+        footers = []
+        for gh in master.group_headers:            
+            # find the "footer" for this "header"
+            footer = None
+            for gf in master.group_footers:
+                if gf.id == gh.footer_id:                    
+                    footer = gf
+                    break
+                    
+            footers.append(footer)
+        
+        data = self.conector.conexion.execute(sql).fetchall()
+        n = 0           
+        for mdata in data:
             for i in xrange(len(master.group_headers)):
                 if mdata[master.group_headers[i].field] != values[i]:
                     self.writeBody(master.group_headers[i].header, mdata)
                     values[i] = mdata[master.group_headers[i].field]
-                                    
-                i += 1
             
             # master:body
             self.writeBody(master.body, mdata)
             
             # master:detail
             for detalle in master.details:
-                self.writeDetail(detalle, mdata)        
+                self.writeDetail(detalle, mdata)
+                
+            for i in xrange(len(master.group_headers) - 1, -1, -1):
+                # exists next record?
+                if len(data) > (n + 1):
+                    next_value = data[n + 1][master.group_headers[i].field]
+                else:
+                    # there's no "next" record
+                    next_value = None
+                    
+                if next_value != values[i]:
+                    # group_footer, if any
+                    if footers[i] != None:
+                        self.writeBody(footers[i].footer, mdata)
+                                                                            
+            n += 1
+                        
     
     def writeDetail(self, detail, mdata):
 
@@ -172,6 +204,11 @@ class ReportPlainText(ReportBase):
         pass
     
     def writeSubReport(self, subreport):
+
+        # check "print_if" condition
+        if not self.check_condition(subreport.print_if):
+            return        
+        
         f_xml = file(os.path.join(self.base_path, subreport.name) + '.xml', 'r')
         try:
             informe = reports.Report(xml=f_xml.read())
@@ -197,6 +234,10 @@ class ReportPlainText(ReportBase):
     
     def writeText(self, text, mdata=None, ddata=None):
         
+        # check "print_if" condition
+        if not self.check_condition(text.print_if, mdata, ddata):
+            return
+        
         out = text.value
 
         # constants
@@ -212,7 +253,7 @@ class ReportPlainText(ReportBase):
         out = self.apply_parameters(out)
         
         # code
-        out = self.execute_code(out)        
+        out = self.compile_text(out)        
             
         # subreports
         for subreport in self.report.subreports:
@@ -225,6 +266,10 @@ class ReportPlainText(ReportBase):
         self.ftext.write(out + '\n')
         
     def writeTextFile(self, textfile, mdata=None, ddata=None):
+        
+        # check "print_if" condition
+        if not self.check_condition(textfile.print_if, mdata, ddata):
+            return
         
         ft = file(os.path.join(self.base_path, textfile.name), 'r')
         try:
@@ -245,7 +290,7 @@ class ReportPlainText(ReportBase):
         out = self.apply_parameters(out)
         
         # code
-        out = self.execute_code(out)
+        out = self.compile_text(out)
                     
         # subreports
         for subreport in self.report.subreports:

@@ -20,7 +20,6 @@ class ReportPdf(ReportBase):
         self.hg = 0
         self.wd = 0
         self.cur_page = None
-        self.page_no = 0
         
         sys.path.append(self.report.path)
         
@@ -183,21 +182,8 @@ class ReportPdf(ReportBase):
     def writeBody(self, body, y, mdata=None, ddata=None):
 
         # check "print_if" condition
-        if (body.print_if or '') != '':
-            # apply "constants"
-            cond = self.apply_constants(body.print_if)
-            
-            # apply "parameters"
-            cond = self.apply_parameters(cond)
-            
-            # apply "masterdata"
-            cond = self.apply_data(cond, mdata)
-            
-            # apply "detail data"
-            cond = self.apply_data(cond, ddata)
-            
-            if not eval(cond):                
-                return y, False            
+        if not self.check_condition(body.print_if, mdata, ddata):
+            return y, False            
                 
         # all the items are "Text"?
         only_text = True
@@ -231,15 +217,7 @@ class ReportPdf(ReportBase):
                         
                 else:
                     # execute "code"
-                    if item.code != '':
-                        # apply "constants"                        
-                        _code = self.apply_constants(item.code)
-                        
-                        # apply "parameters"
-                        _code = self.apply_parameters(_code)
-                        
-                        if self.debug: print 'executing...%s' % _code
-                        exec(_code)
+                    self.execute_code(item)
                     
             if new_page and not body.split_on_new_page:
                 self.newPage(save=True)                
@@ -484,21 +462,8 @@ class ReportPdf(ReportBase):
     def writeText(self, text, y, mdata=None, ddata=None):
         
         # check "print_if" condition
-        if (text.print_if or '') != '':
-            # apply "constants"
-            cond = self.apply_constants(text.print_if)
-            
-            # apply "parameters"
-            cond = self.apply_parameters(cond)
-            
-            # apply "master data"
-            cond = self.apply_data(cond, mdata)
-            
-            # apply "detail data"
-            cond = self.apply_data(cond, ddata)
-                        
-            if not eval(cond):
-                return y, False
+        if not self.check_condition(text.print_if, mdata, ddata):
+            return y, False
         
         out = text.value
         
@@ -515,7 +480,7 @@ class ReportPdf(ReportBase):
         out = self.apply_parameters(out)
         
         # code
-        out = self.execute_code(out)
+        out = self.compile_text(out)
         
         # print content thru "stdout"
         if self.debug: print out, y - (text.top * mm + text.height * mm), text.top, text.height
@@ -565,15 +530,8 @@ class ReportPdf(ReportBase):
     def writeLine(self, line, y):
         
         # check "print_if" condition
-        if (line.print_if or '') != '':
-            # apply "constants"
-            cond = self.apply_constants(line.print_if)
-            
-            # apply "parameters"
-            cond = self.apply_parameters(cond)            
-                                    
-            if not eval(cond):
-                return y       
+        if not self.check_condition(line.print_if):
+            return y       
         
         y1 = y
         if line.y1 != None: y1 = y -(line.y1 * mm)
@@ -596,15 +554,8 @@ class ReportPdf(ReportBase):
     def writeImage(self, image, y):
         
         # check "print_if" condition
-        if (image.print_if or '') != '':
-            # apply "constants"
-            cond = self.apply_constants(image.print_if)
-            
-            # apply "parameters"
-            cond = self.apply_parameters(cond)
-            
-            if not eval(cond):
-                return y, False
+        if not self.check_condition(image.print_if):
+            return y, False
         
         y -= (image.top + image.height) * mm
         

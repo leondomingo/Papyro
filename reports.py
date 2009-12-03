@@ -652,10 +652,10 @@ class SubParameters(object):
         return valor
         
     def setxml(self, valor):        
-        parametros = etree.fromstring(valor)        
+        parameters = etree.fromstring(valor)        
         
         self.params = []
-        for param in parametros.iterchildren('param'):
+        for param in parameters.iterchildren('param'):
             self.params.append((param.text, param.attrib['value']))
             
     xml = property(getxml, setxml)
@@ -667,24 +667,29 @@ class SubReport(NotPrintableItem):
         self.id = id
         self.name = None
         self.params = SubParameters()
+        self.print_if = None
         
     def getxml(self):
         value = \
             '<subreport>\n' + \
-            '  <id>' + self.id or '' '</id>\n' + \
-            '  <name>' + self.name or '' + '</path>\n' + \
+            '  <id>' + (self.id or '') + '</id>\n' + \
+            '  <name>' + (self.name or '') + '</path>\n' + \
             self.params.xml + \
+            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
             '</subreport>\n'        
         
         return value
     
     def setxml(self, value):
         
-        subinforme = etree.fromstring(value)
+        subr = etree.fromstring(value)
         
-        self.id = subinforme.find('id').text or ''
-        self.name = subinforme.find('name').text or ''
-        self.params.xml = etree.tostring(subinforme.find('params')) 
+        self.id = subr.find('id').text or ''
+        self.name = subr.find('name').text or ''
+        self.params.xml = etree.tostring(subr.find('params'))
+        
+        if subr.find('print_if') != None:
+            self.print_if = subr.find('print_if').text
     
     xml = property(getxml, setxml)
 
