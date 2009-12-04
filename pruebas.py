@@ -2,7 +2,7 @@
 
 from unidadescompartidas import conexion
 from reports import Report
-from reportPdf import ReportPdf
+#from reportPdf import ReportPdf
 from reportPlainText import ReportPlainText
 import os.path
 #from libpy.implementation.enviaremail import enviar_email

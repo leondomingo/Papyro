@@ -19,8 +19,8 @@ class ReportBase(object):
             global CODE
             CODE = __import__(os.path.splitext(sc.file)[0], globals(), locals())
             
-    def get_date(self, format):
-        return datetime.now().strftime(format)        
+    def get_date(self, fmt):
+        return datetime.now().strftime(fmt)        
                     
     def apply_constants(self, text):
         
