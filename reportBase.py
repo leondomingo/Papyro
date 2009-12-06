@@ -39,21 +39,19 @@ class ReportBase(object):
         return text
     
     def apply_parameters(self, text):
-        out = text
         for par in self.report.params.params:
             parameter = '#%s#' % par[0]
-            out = out.replace(parameter, par[1])
+            text = self.replace_parameter(text, parameter, par[1])
             
-        return out
+        return text
     
     def apply_data(self, text, data):
-        out = text
         if data != None:
             for k in data.keys():
                 parameter = '#%s#' % str(k)
-                out = out.replace(parameter, str(data[k]))
+                text = self.replace_parameter(text, parameter, str(data[k]))
                 
-        return out
+        return text
     
     def check_condition(self, cond, mdata=None, ddata=None):
         """Check the condition of the Python code 'cond' and returns True or False.
@@ -127,16 +125,30 @@ class ReportBase(object):
             
         return text_out
     
-#    def inside_code(self, text, parameter):
-#        
-#        inside = False
-#        i = text.find('{{')
-#        while i != -1:
-#            p = text[i+2:].find('parameter')
-#                
-#        
-#        return inside
-#    
-#    def quote_string(self, value):
-#        
-#        return "'%s'" % value.replace("'", "\\'")
+    def replace_parameter(self, text, parameter, value):
+        """Replaces every occurrence in 'text' of 'parameter' with 'value'"""
+        
+        if text.find('{{') != -1 and text.find('}}') != -1:        
+            r = text.partition(parameter)
+            while r[1] != '':
+                if self.inside_code(text, len(r[0])):
+                    text = r[0] + self.quote_string(value) + r[2]
+                    
+                else:
+                    text = r[0] + value + r[2]
+                    
+                r = text.partition(parameter)
+        
+        else:
+            text = text.replace(parameter, value)            
+        
+        return text
+    
+    def inside_code(self, text, i):
+        
+        a = text[i:].find('}}')
+        
+        return i > a   
+    
+    def quote_string(self, value):
+        return value.replace("'", "\\'")

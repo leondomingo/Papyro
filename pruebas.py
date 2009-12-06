@@ -2,9 +2,9 @@
 
 from unidadescompartidas import conexion
 from reports import Report
-#from reportPdf import ReportPdf
-from reportPlainText import ReportPlainText
-import os.path
+from reportPdf import ReportPdf
+#from reportPlainText import ReportPlainText
+#import os.path
 #from libpy.implementation.enviaremail import enviar_email
 
 conector = conexion()
@@ -15,8 +15,8 @@ conector = conexion()
 #report_path = os.path.join(conector.datosconexion.getVariable('ruta_informes'), 
 #                           'MailResumenMensual/MailResumenMensual.xml')
 
-report_path = os.path.join(conector.datosconexion.getVariable('ruta_informes'),
-                           'MailResumenMensual_ultimo-dia/MailResumenMensual_ultimo-dia.xml')
+#report_path = os.path.join(conector.datosconexion.getVariable('ruta_informes'),
+#                           'MailResumenMensual_ultimo-dia/MailResumenMensual_ultimo-dia.xml')
 
 #informe = Report(reportfile=report_path)
 informe = Report(reportfile='./report1.xml')
@@ -28,14 +28,14 @@ informe = Report(reportfile='./report1.xml')
 
 #    print informe.xml
 
-#pdf = ReportPdf(informe, conector)
-#pdf.writeReport(pdf_file='./report1.pdf', params=[('P_NUMERO_GRUPOS', '30', 'int'),
-#                                                  ('P_GRUPO', '390', 'int')], debug=False)
+pdf = ReportPdf(informe, conector)
+pdf.writeReport(pdf_file='./report1.pdf', params=[('P_NUMERO_GRUPOS', '30', 'int'),
+                                                  ('P_GRUPO', '390', 'int')], debug=False)
 
-txt = ReportPlainText(informe, conector)
-resultado = txt.writeReport(text_file='./report1.txt',
-                            params=[('P_NUMERO_GRUPOS', '30', 'int'),
-                                    ('P_GRUPO', '390', 'int')])
+#txt = ReportPlainText(informe, conector)
+#resultado = txt.writeReport(text_file='./report1.txt',
+#                            params=[('P_NUMERO_GRUPOS', '30', 'int'),
+#                                    ('P_GRUPO', '390', 'int')])
 
 #print resultado
 

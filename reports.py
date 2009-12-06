@@ -116,6 +116,31 @@ class NotPrintableItem(ReportItem):
     def __init__(self):
         ReportItem.__init__(self)
         
+class Outline(object):
+    def __init__(self):
+        self.title = None
+        self.key = None
+        self.level = None
+    
+    def getxml(self):
+        value = \
+            '<outline>\n' + \
+            '  <title>' + (self.title or '') + '</title>\n' + \
+            '  <key>' + (self.key or '') + '</key>\n' + \
+            '  <level>' + (self.level or '') + '</level\n' + \
+            '</outline>\n'
+            
+        return value
+    
+    def setxml(self, value):
+        ol = etree.fromstring(value)
+        
+        self.title = ol.find('title').text
+        self.key = ol.find('key').text
+        self.level = ol.find('level').text
+        
+    xml = property(getxml, setxml)
+        
 class Script(object):
     def __init__(self):
         self.file = None
@@ -174,7 +199,7 @@ class PageHeader(NotPrintableItem):
         NotPrintableItem.__init__(self)
         self.id = id
         self.body = Body()
-        self.options = PageHeaderOptions
+        self.options = PageHeaderOptions()
         
     def getxml(self):
         valor = \
@@ -251,6 +276,7 @@ class GroupHeader(NotPrintableItem):
         self.id = id
         self.field = None
         self.options = GroupHeaderOptions()
+        self.outline = None
         self.header = Header()
         self.footer_id = None
         
@@ -261,6 +287,7 @@ class GroupHeader(NotPrintableItem):
             '  <field>' + (self.field or '') + '</field>\n' + \
             '  <footer_id>' + (self.footer_id or '') + '</footer_id>\n' + \
             self.options.xml + \
+            (self.outline.xml if self.outline != None else '') + \
             ReportItem.getxml(self) + \
             self.header.xml + \
             '</group_header>\n'
@@ -274,7 +301,15 @@ class GroupHeader(NotPrintableItem):
         self.field = gh.find('field').text or ''
         if gh.find('footer_id') != None:
             self.footer_id = gh.find('footer_id').text
+        
         self.options.xml = etree.tostring(gh.find('options'))
+        
+        self.outline = None
+        gh_outline = gh.find('outline')
+        if gh_outline != None:
+            self.outline = Outline()
+            self.outline.xml = etree.tostring(gh_outline)
+        
         self.header.xml = etree.tostring(gh.find('header'))
         
     xml = property(getxml, setxml)
@@ -373,6 +408,7 @@ class Detail(NotPrintableItem):
         self.table = Table()
         self.header = None
         self.body = Body()
+        self.outline = None
         
     def getxml(self):
         valor = \
@@ -381,6 +417,7 @@ class Detail(NotPrintableItem):
             '  <master_field>' + (self.master_field or '') + '</master_field>\n' + \
             self.table.xml + \
             (self.header.xml if self.header != None else '') + \
+            (self.outline.xml if self.outline != None else '') + \
             self.body.xml + \
             '</detail>\n'
             
@@ -398,6 +435,12 @@ class Detail(NotPrintableItem):
         if h != None:
             self.header = HeaderDetail()
             self.header.xml = etree.tostring(h)
+            
+        self.outline = None
+        dt_outline = detail.find('outline')
+        if dt_outline != None:
+            self.outline = Outline()
+            self.outline.xml = etree.tostring(dt_outline)
         
         self.body.xml = etree.tostring(detail.find('body'))
     
@@ -408,6 +451,7 @@ class Master(NotPrintableItem):
         NotPrintableItem.__init__(self)
         self.id = id or ''
         self.table = Table()
+        self.outline = None
         self.group_headers = []
         self.group_footers = []
         self.body = Body()
@@ -440,6 +484,7 @@ class Master(NotPrintableItem):
             self.table.xml + \
             self.getxmlgroupheaders() + \
             self.getxmlgroupfooters() + \
+            (self.outline.xml if self.outline != None else '') + \
             self.body.xml + \
             self.getxmldetails() + \
             '</master>\n'
@@ -467,6 +512,12 @@ class Master(NotPrintableItem):
             group_footer.xml = etree.tostring(gf)
             
             self.group_footers.append(group_footer)
+            
+        self.outline = None
+        ms_outline = master.find('outline')
+        if ms_outline != None:
+            self.outline = Outline()
+            self.outline.xml = etree.tostring(ms_outline)
             
         self.body.xml = etree.tostring(master.find('body'))
         
@@ -1042,9 +1093,12 @@ class ReportTitle(NotPrintableItem):
 class Report(object):    
     def __init__(self, name=None, reportfile=None, xml=None):
         self.name = name or ''
+        self.author = None
+        self.subject = None
+        self.keywords = None
         self.filename = reportfile        
         self.pages = [] # lista de "ReportPage"
-        self.title = ReportTitle(None)
+        self.title = ReportTitle(None)        
         self.paper_size = None
         self.paper_orientation = None
         self.margin_left = None
@@ -1099,6 +1153,9 @@ class Report(object):
             '<?xml version="1.0"?>\n' + \
             '<report>\n' + \
             '  <name>' + self.name + '</name>\n' + \
+            '  <author>' + (self.author or '') + '</author>\n' + \
+            '  <subject>' + (self.subject or '') + '</subject>\n' + \
+            '  <keywords>' + (self.keywords or '') + '</keywords>\n' + \
             '  <configuration>\n' + \
             '    <paper>\n' + \
             '      <size>' + (self.paper_size or '') + '</size>\n' + \
@@ -1126,6 +1183,9 @@ class Report(object):
         report = etree.fromstring(valor)
         
         self.name = report.find('name').text
+        self.author = report.find('author').text or ''
+        self.subject = report.find('subject').text or ''
+        self.keywords = report.find('keywords').text or ''
         
         if report.find('font') != None:
             self.font.xml = etree.tostring(report.find('font'))

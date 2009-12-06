@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <report>
-    <name>Otro informe con GroupHeader</name>
+    <name>Otro informe con GroupHeaders, Details, código Python, etc</name>
+    <author>León Domingo Ortín</author>
+    <subject>Desarrollo de Papyro</subject>
+    <keywords>grupos cursos tandem madrid león ender</keywords>
     <configuration>
         <paper>
             <size>A4</size>            
@@ -222,6 +225,11 @@
                     <options>
                         <__print_on_new_page/>
                     </options>
+                    <outline>
+                        <title>#CURSOS_NOMBRE#</title>
+                        <key>C_#CURSOS_ID#</key>
+                        <level></level>
+                    </outline>
                     <header>
                         <code>CODE.sum_valor('cursos', 1)</code>
                         <code>CODE.set_valor('grupos', 0)</code>
@@ -256,6 +264,11 @@
                     <id>gh_grupos</id>
                     <field>GRUPOS_NOMBRE</field>
                     <options></options>
+                    <outline>
+                        <title>#GRUPOS_NOMBRE#</title>
+                        <key>G_#GRUPOS_ID#</key>
+                        <level>1</level>
+                    </outline>
                     <footer_id>gf_grupos</footer_id>
                     <header>
                         <!--<split_on_new_page/>-->
@@ -344,7 +357,12 @@
                             </font>                            
                         </text>
                     </body>
-                </group_footer>                
+                </group_footer>
+                <outline>
+                    <title>Aquí un outline de un master (#GRUPOS_NOMBRE#)</title>
+                    <key>M_G_#GRUPOS_ID#</key>
+                    <level>1</level>
+                </outline>               
                 <body>
                 </body>
                 <detail>
@@ -353,6 +371,7 @@
                     <table>
                         <query>
                             SELECT
+                                alumnos.id as "ALUMNOS_ID",
                                 alias_alumno(alumnos.id) as "ALUMNOS_ALIAS",
                                 format_fecha('dd/mm/yyyy', aeg.fecha_inicio) as "AEG_FECHAINICIO",
                                 format_fecha('dd/mm/yyyy', aeg.fecha_fin) as "AEG_FECHAFIN"
@@ -384,18 +403,23 @@
                                 <font>
                                     <name>VeraSans</name>
                                     <size>5</size>
-                                    <color>D000FF</color>
+                                    <color></color>
                                     <style></style>
                                 </font>
                             </text>
                         </body>
-                    </header>                    
+                    </header>
+                    <outline>
+                        <title>#ALUMNOS_ALIAS#</title>                        
+                        <key>A_#ALUMNOS_ID#</key>
+                        <level>2</level>
+                    </outline>                    
                     <body>                        
                         <print_if>CODE.get_valor('alumnos') &lt; 3</print_if>
                         <code>CODE.sum_valor('alumnos', 1)</code>
                         <text>
                             <id>txt_alumno</id>                            
-                            <value>{{CODE.get_valor('alumnos')}}. #ALUMNOS_ALIAS#</value>
+                            <value>{{CODE.get_valor('alumnos')}}. {{('#ALUMNOS_ALIAS# ' * 2).lower()}}</value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>
@@ -409,17 +433,17 @@
                                 <size>7</size>
                                 <color></color>
                                 <style></style>
-                            </font>                            
+                            </font>
                         </text>                        
                         <text>
                             <id>txt_alumno</id>
-                            <value>{{"(desde #AEG_FECHAINICIO# hasta #AEG_FECHAFIN#)".upper()}} {{CODE.get_date('%d/%m')}}</value>
+                            <value>{{'(desde #AEG_FECHAINICIO# hasta #AEG_FECHAFIN#)'.upper()}} {{CODE.get_date('%d/%m')}}</value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>
                             </size>
                             <position>
-                                <left>80</left>
+                                <left>70</left>
                                 <top>0</top>
                             </position>
                             <font>

@@ -8,7 +8,6 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportBase import ReportBase
 import reports
 import os.path
-import sys
 
 class ReportPdf(ReportBase):
     
@@ -20,14 +19,6 @@ class ReportPdf(ReportBase):
         self.hg = 0
         self.wd = 0
         self.cur_page = None
-        
-        sys.path.append(self.report.path)
-        
-        # scripts
-        for sc in self.report.scripts:
-            #prueba = __import__('prueba', globals(), locals())
-            global PaCODE
-            PaCODE = __import__(os.path.splitext(sc.file)[0], globals(), locals())        
         
     def newPage(self, save=False):
         
@@ -66,7 +57,11 @@ class ReportPdf(ReportBase):
         self.canvas.translate(m_left, self.hg + m_bottom + pf_height)
         
         # draw margins
-        if self.debug: self.canvas.rect(0, -self.hg, self.wd, self.hg)
+        if self.debug:
+            self.canvas.saveState()
+            self.canvas.setFillColorRGB(r=0.5, g=0.6, b=0.3)
+            self.canvas.rect(0, -self.hg, self.wd, self.hg, stroke=0, fill=1)
+            self.canvas.restoreState()
         
         # font
         self.canvas.setFont(self.report.font.name, self.report.font.size)
@@ -81,7 +76,7 @@ class ReportPdf(ReportBase):
         
         # canvas
         if c != None:
-            # using an external 'canvas'
+            # using an "external" canvas
             self.canvas = c
             
         else:
@@ -144,10 +139,16 @@ class ReportPdf(ReportBase):
                 if p[0] in param_names:
                     i = param_names.index(p[0])
                     self.report.params.params[i] = p
-           
+                    
         self.cur_page = self.report.pages[0]
+        self.page_no = self.report.pages[0].num
         self.newPage()
-        first_page = True        
+        first_page = True
+        
+        self.canvas.setTitle(str(self.report.name))
+        self.canvas.setAuthor(str(self.report.author))
+        self.canvas.setSubject(str(self.report.subject))
+        self.canvas.setKeywords(str(self.report.keywords))
         
         # title
         self.writeReportTitle(self.report.title)
@@ -274,16 +275,36 @@ class ReportPdf(ReportBase):
                 elif isinstance(item, reports.Text):
                     y, new_page = self.writeText(item, y, mdata, ddata)
                     
-                # Image
-#                elif isinstance(item, reports.Image):
-#                    y, new_page = self.writeImage(item, y)
-                
                 if not new_page:
                     if y < min_y: min_y = y
                 else:
                     min_y = y
             
-        return min_y, new_page    
+        return min_y, new_page
+    
+    def writeOutline(self, outline, mdata=None, ddata=None):        
+        if outline != None:
+            title = outline.title
+            
+            title = self.apply_constants(title)
+            title = self.apply_data(title, mdata)
+            title = self.apply_data(title, ddata)
+            title = self.apply_parameters(title)
+            title = self.compile_text(title)
+            
+            if isinstance(title, unicode): title = str(title)
+            
+            key = outline.key
+            
+            key = self.apply_constants(key)
+            key = self.apply_data(title, mdata)
+            key = self.apply_data(title, ddata)
+            key = self.apply_parameters(key)
+            key = self.compile_text(key)            
+            
+            level = int(outline.level or 0)
+            self.canvas.bookmarkPage(key)
+            self.canvas.addOutlineEntry(title, key, level, closed=1)
     
     def writeMaster(self, master, y):
         
@@ -330,10 +351,15 @@ class ReportPdf(ReportBase):
                     y, new_page = self.writeBody(master.group_headers[i].header, y, mdata)
                     values[i] = mdata[master.group_headers[i].field]
                     
+                    self.writeOutline(master.group_headers[i].outline, mdata) 
+                    
                     if not new_page:
                         if y < min_y: min_y = y
                     else:
                         min_y = y
+                        
+            # master:outline
+            self.writeOutline(master.outline, mdata)
             
             # master:body
             y, new_page = self.writeBody(master.body, y, mdata)
@@ -412,6 +438,8 @@ class ReportPdf(ReportBase):
                 if y < min_y: min_y = y
             else:
                 min_y = y
+                
+            self.writeOutline(detail.outline, mdata, ddata)
             
         return min_y, new_page
     
