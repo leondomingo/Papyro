@@ -223,7 +223,6 @@
                     <field>CURSOS_NOMBRE</field>
                     <footer_id>gf_cursos</footer_id>
                     <options>
-                        <__print_on_new_page/>
                     </options>
                     <outline>
                         <title>#CURSOS_NOMBRE#</title>
@@ -419,7 +418,7 @@
                         <code>CODE.sum_valor('alumnos', 1)</code>
                         <text>
                             <id>txt_alumno</id>                            
-                            <value>{{CODE.get_valor('alumnos')}}. {{('#ALUMNOS_ALIAS# ' * 2).lower()}}</value>
+                            <value>¡1 &lt; 100 = {{str(1 &lt; 100).upper()}}! {{CODE.get_valor('alumnos')}}. {{('#ALUMNOS_ALIAS# ' * 2).lower()}}</value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>

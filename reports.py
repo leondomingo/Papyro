@@ -3,6 +3,9 @@
 from lxml import etree
 import os.path
 
+def proper_text(text):
+    return (text.replace('>', '&gt;').replace('<', '&lt;') if text != None else '')
+
 class Font(object):
     def __init__(self):
         self.name = None
@@ -127,7 +130,7 @@ class Outline(object):
             '<outline>\n' + \
             '  <title>' + (self.title or '') + '</title>\n' + \
             '  <key>' + (self.key or '') + '</key>\n' + \
-            '  <level>' + (self.level or '') + '</level\n' + \
+            '  <level>' + (self.level or '') + '</level>\n' + \
             '</outline>\n'
             
         return value
@@ -543,8 +546,8 @@ class Text(PrintableItem):
         valor = \
             '<text>\n' + \
             '  <id>' + self.id + '</id>\n' + \
-            '  <value>' + (self.value or '') + '</value>\n' + \
-            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
+            '  <value>' + proper_text(self.value) + '</value>\n' + \
+            '  <print_if>' + proper_text(self.print_if) + '</print_if>\n' + \
             ReportItem.getxml(self) + \
             '</text>\n'
             
@@ -582,7 +585,7 @@ class Line(PrintableItem):
             '  <y1>' + str(self.y1 or '') + '</y1>\n' + \
             '  <x2>' + str(self.x2) + '</x2>\n' + \
             '  <y2>' + str(self.y2 or '') + '</y2>\n' + \
-            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
+            '  <print_if>' + proper_text(self.print_if) + '</print_if>\n' + \
             ReportItem.getxml(self) + \
             '</line>\n'
             
@@ -639,7 +642,7 @@ class Image(PrintableItem):
             '  <id>' + self.id + '</id>\n' + \
             '  <filename>' + (self.filename or '') + '</filename>\n' + \
             ('  <keep_aspect_ratio/>\n' if self.keep_aspect_ratio else '') + \
-            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
+            '  <print_if>' + proper_text(self.print_if) + '</print_if>\n' + \
             ReportItem.getxml(self) + \
             '</image>\n'
             
@@ -671,7 +674,7 @@ class TextFile(PrintableItem):
             '<text_file>\n' + \
             '  <id>' + (self.id or '') + '</id>\n' + \
             '  <name>' + (self.name or '') + '</name>\n' + \
-            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
+            '  <print_if>' + proper_text(self.print_if) + '</print_if>\n' + \
             '</text_file>'
             
         return value
@@ -726,7 +729,7 @@ class SubReport(NotPrintableItem):
             '  <id>' + (self.id or '') + '</id>\n' + \
             '  <name>' + (self.name or '') + '</path>\n' + \
             self.params.xml + \
-            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
+            '  <print_if>' + proper_text(self.print_if) + '</print_if>\n' + \
             '</subreport>\n'        
         
         return value
@@ -762,7 +765,7 @@ class Body(NotPrintableItem):
         valor = \
             '<body>\n' + \
             ('  <split_on_new_page/>\n' if self.split_on_new_page else '') + \
-            '  <print_if>' + (self.print_if or '') + '</print_if>\n' + \
+            '  <print_if>' + proper_text(self.print_if) + '</print_if>\n' + \
             self.getxmlitems() + \
             '</body>\n'
             

@@ -3,6 +3,8 @@
 from unidadescompartidas import conexion
 from reports import Report
 from reportPdf import ReportPdf
+import cStringIO
+from lxml import etree
 #from reportPlainText import ReportPlainText
 #import os.path
 #from libpy.implementation.enviaremail import enviar_email
@@ -19,7 +21,12 @@ conector = conexion()
 #                           'MailResumenMensual_ultimo-dia/MailResumenMensual_ultimo-dia.xml')
 
 #informe = Report(reportfile=report_path)
-informe = Report(reportfile='./report1.xml')
+informe = Report(reportfile='./report1/report1.xml')
+
+#print informe.xml
+etree.fromstring(informe.xml)
+#exit()
+
 
 #f = file('./report1.xml', 'r')
 #f = file(report_path, 'r')
@@ -29,8 +36,18 @@ informe = Report(reportfile='./report1.xml')
 #    print informe.xml
 
 pdf = ReportPdf(informe, conector)
-pdf.writeReport(pdf_file='./report1.pdf', params=[('P_NUMERO_GRUPOS', '30', 'int'),
-                                                  ('P_GRUPO', '390', 'int')], debug=False)
+# './report1.pdf'
+
+f_pdf = cStringIO.StringIO()
+f_out = file('./report1.pdf', 'wb')
+try:    
+    pdf.writeReport(pdf_file=f_pdf, params=[('P_NUMERO_GRUPOS', '30', 'int'),
+                                            ('P_GRUPO', '390', 'int')], debug=False)
+    
+    f_out.write(f_pdf.getvalue())
+
+finally:
+    f_out.close()    
 
 #txt = ReportPlainText(informe, conector)
 #resultado = txt.writeReport(text_file='./report1.txt',

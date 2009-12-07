@@ -141,7 +141,7 @@ class ReportPdf(ReportBase):
                     self.report.params.params[i] = p
                     
         self.cur_page = self.report.pages[0]
-        self.page_no = self.report.pages[0].num
+        self.page_no = self.report.pages[0].num - 1
         self.newPage()
         first_page = True
         
