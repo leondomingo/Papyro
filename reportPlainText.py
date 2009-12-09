@@ -49,7 +49,7 @@ class ReportPlainText(ReportBase):
         return self.ftext.read() 
     
     def writeReportTitle(self, title):
-        self.writeBody(title.body, 0)
+        self.writeBody(title.body)
     
     def writeReporPage(self, page):
         

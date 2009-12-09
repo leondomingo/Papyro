@@ -3,6 +3,8 @@
 import os.path
 import sys
 from datetime import datetime
+import reports
+from reportlab.lib.units import mm
 
 class ReportBase(object):
     
@@ -11,6 +13,8 @@ class ReportBase(object):
         self.conector = conector
         self.debug = False
         self.page_no = 0
+        self.cur_item = None
+        self.cur_y = 0
         
         sys.path.append(self.report.path)
         
@@ -75,17 +79,24 @@ class ReportBase(object):
         else:
             return True
     
-    def execute_code(self, item):
+    def execute_code(self, item, y, mdata=None, ddata=None):
         """Execute the code of the <code> 'item'"""
-        if item.code != '':            
+        min_y = y
+        if item.code != '':
             # apply "constants"                        
             _code = self.apply_constants(item.code)
             
             # apply "parameters"
             _code = self.apply_parameters(_code)
             
+            # applyt "data" (master, detail)
+            _code = self.apply_data(_code, mdata)
+            _code = self.apply_data(_code, ddata)
+                        
             if self.debug: print 'executing...%s' % _code
-            exec(_code)    
+            exec(_code)
+        
+        return min_y    
     
     def compile_text(self, text):
         """Replace every piece of Python code inside {{...}} with the returning

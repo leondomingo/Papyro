@@ -20,6 +20,24 @@ class ReportPdf(ReportBase):
         self.wd = 0
         self.cur_page = None
         
+    def apply_colors(self, color):
+        
+        return color.\
+                replace('BLACK', '000000').\
+                replace('WHITE', 'FFFFFF').\
+                replace('RED', 'FF0000').\
+                replace('GREEN', '00FF00').\
+                replace('BLUE', '0000FF').\
+                replace('LTGRAY', 'C0C0C0').\
+                replace('YELLOW', '00FFFF')
+                
+    def get_rgb(self, hex):
+        r = int(hex[0:2], 16) / 255.0
+        g = int(hex[2:4], 16) / 255.0
+        b = int(hex[4:6], 16) / 255.0
+        
+        return r, g, b    
+        
     def newPage(self, save=False):
         
         if save:
@@ -27,7 +45,8 @@ class ReportPdf(ReportBase):
             if self.cur_page.page_footer != None:
                 self.writePageFooter(self.cur_page.page_footer)
                 
-            self.canvas.showPage()        
+            self.canvas.showPage()
+            self.canvas.setLineWidth(0.1)        
         
         if self.debug: print '***NEW PAGE*****************'
         
@@ -140,6 +159,8 @@ class ReportPdf(ReportBase):
                     i = param_names.index(p[0])
                     self.report.params.params[i] = p
                     
+        self.canvas.setLineWidth(0.1)
+                    
         self.cur_page = self.report.pages[0]
         self.page_no = self.report.pages[0].num - 1
         self.newPage()
@@ -167,10 +188,11 @@ class ReportPdf(ReportBase):
         self.canvas.save()
     
     def writeReportTitle(self, title):
+        self.cur_item = title
         self.writeBody(title.body, 0)
     
     def writeReporPage(self, page):
-        
+                
         if self.debug: print 'ReportPage:', str(page)
             
         # body
@@ -181,6 +203,9 @@ class ReportPdf(ReportBase):
             self.writePageFooter(page.page_footer)                
     
     def writeBody(self, body, y, mdata=None, ddata=None):
+        
+        self.cur_item = body
+        self.cur_y = y
 
         # check "print_if" condition
         if not self.check_condition(body.print_if, mdata, ddata):
@@ -218,7 +243,7 @@ class ReportPdf(ReportBase):
                         
                 else:
                     # execute "code"
-                    self.execute_code(item)
+                    y = self.execute_code(item, y, mdata, ddata)
                     
             if new_page and not body.split_on_new_page:
                 self.newPage(save=True)                
@@ -308,6 +333,9 @@ class ReportPdf(ReportBase):
     
     def writeMaster(self, master, y):
         
+        self.cur_item = master
+        self.cur_y = y
+                
         sql = master.table.query
         
         # parameters
@@ -400,7 +428,10 @@ class ReportPdf(ReportBase):
         return min_y, new_page        
     
     def writeDetail(self, detail, y, mdata):
-
+        
+        self.cur_item = detail
+        self.cur_y = y
+        
         # manage SQL
         detail_dict = {}
         detail_dict[detail.master_field] = mdata[detail.master_field]       
@@ -444,6 +475,8 @@ class ReportPdf(ReportBase):
         return min_y, new_page
     
     def writePageHeader(self, page_header):
+        self.cur_item = page_header
+        
         self.canvas.saveState()
         self.canvas.translate(0, page_header.height * mm)
         if self.debug: self.canvas.rect(0, 0, self.wd, -page_header.height * mm)        
@@ -451,6 +484,8 @@ class ReportPdf(ReportBase):
         self.canvas.restoreState()
     
     def writePageFooter(self, page_footer):
+        self.cur_item = page_footer
+        
         self.canvas.saveState()
         self.canvas.translate(0, -self.hg)        
         if self.debug: self.canvas.rect(0, 0, self.wd, -page_footer.height * mm)                    
@@ -458,6 +493,10 @@ class ReportPdf(ReportBase):
         self.canvas.restoreState()
     
     def writeGroupHeader(self, group_header, y, data):
+        
+        self.cur_item = group_header
+        self.cur_y = y
+        
         field_value = None
         min_y = y
         new_page = False
@@ -475,9 +514,6 @@ class ReportPdf(ReportBase):
                 
         return min_y, new_page
     
-    def writeGroupFooter(self, group_footer):
-        pass
-    
     def getTextHeight(self, text, y):
         new_page = False
         y -= (text.top * mm + text.height * mm)
@@ -488,6 +524,9 @@ class ReportPdf(ReportBase):
         return y, new_page
     
     def writeText(self, text, y, mdata=None, ddata=None):
+        
+        self.cur_item = text
+        self.cur_y = y
         
         # check "print_if" condition
         if not self.check_condition(text.print_if, mdata, ddata):
@@ -534,21 +573,16 @@ class ReportPdf(ReportBase):
         # change font
         self.canvas.setFont(fn, sz)
         if text.font.color != None:
-            r = int(text.font.color[0:2], 16) / 255.0
-            g = int(text.font.color[2:4], 16) / 255.0
-            b = int(text.font.color[4:6], 16) / 255.0
+            font_color = self.apply_colors(text.font.color)
+            r, g, b = self.get_rgb(font_color)
             self.canvas.setFillColorRGB(r, g, b)
             
         elif self.report.font.color != None:
-            r = int(self.report.font.color[0:2], 16) / 255.0
-            g = int(self.report.font.color[2:4], 16) / 255.0
-            b = int(self.report.font.color[4:6], 16) / 255.0
+            r_font_color = self.apply_colors(self.report.font.color)
+            r, g, b = self.get_rgb(r_font_color)
             self.canvas.setFillColorRGB(r, g, b)
         
         self.canvas.drawString(text.left * mm, y, out)
-        
-#        self.canvas.setStrokeColorRGB(r, g, b)
-#        self.canvas.line(0, y, self.wd, y)
         
         # restore state
         self.canvas.restoreState()
@@ -556,6 +590,9 @@ class ReportPdf(ReportBase):
         return y, new_page
     
     def writeLine(self, line, y):
+        
+        self.cur_item = line
+        self.cur_y = y
         
         # check "print_if" condition
         if not self.check_condition(line.print_if):
@@ -567,19 +604,37 @@ class ReportPdf(ReportBase):
         y2 = y
         if line.y2 != None: y2 = y -(line.y2 * mm)
         
-#        if self.debug:
-#        print 'Line: x1=%2.2f, y1=%2.2f, x2=%2.2f, y2=%2.2f' % \
-#            (line.x1 * mm, y1, line.x2 * mm, y2)
-        
+        if self.debug:
+            print 'Line (y=%2.2f): x1=%2.2f, y1=%2.2f, x2=%2.2f, y2=%2.2f' % \
+                (y, line.x1 * mm, y1, line.x2 * mm, y2)
+            
+        self.canvas.saveState()    
+        if line.color != None:
+            color = self.apply_colors(line.color)
+      
+            r, g, b = self.get_rgb(color)
+            self.canvas.setStrokeColorRGB(r, g, b)
+            
+        if line.pattern != None:
+            pattern = line.pattern.split()
+            self.canvas.setDash(pattern, phase=0)            
+            
         self.canvas.line(line.x1 * mm, y1, line.x2 * mm, y2)
+        
+        self.canvas.restoreState()
 
         min_y = y
-#        if y1 < min_y: min_y = y1
-#        if y2 < min_y: min_y = y2
+        if y1 < min_y: min_y = y1
+        if y2 < min_y: min_y = y2
+        
+        if self.debug: print 'min_y =', min_y, y, y1, y2
         
         return min_y
     
     def writeImage(self, image, y):
+        
+        self.cur_item = image
+        self.cur_y = y
         
         # check "print_if" condition
         if not self.check_condition(image.print_if):

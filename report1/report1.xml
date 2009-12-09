@@ -35,7 +35,7 @@
     <script>
         <file>report1.py</file>
     </script>
-    <page>
+    <_page>
         <id>page_1</id>
         <number>1</number>
         <page_header>
@@ -66,7 +66,7 @@
                     <id/>
                     <x1>0</x1>
                     <y1>7</y1>
-                    <x2>135</x2>
+                    <x2>140</x2>
                     <y2>7</y2>
                 </line>
                 <text>
@@ -189,6 +189,29 @@
             </body>
         </page_footer>
         <body>
+            <!-- calcular festivos -->
+            <master>
+                <id/>
+                <table>
+                    <query>
+                        SELECT
+                            cal.id_grupos_grupo as "CAL_GRUPO",
+                            format_fecha('dd/mm/yyyy', cal.fecha) as "CAL_FECHA"
+                        FROM calendarios cal
+                        WHERE 
+                            NOT lectivo AND 
+                            id_grupos_grupo IS NOT NULL 
+                        ORDER BY "CAL_GRUPO", "CAL_FECHA"                            
+                    </query>
+                    <fields>
+                        <field>CAL_GRUPO</field>
+                        <field>CAL_FECHA</field>
+                    </fields>
+                </table>
+                <body>
+                    <code>CODE.add_fecha(#CAL_GRUPO# , '#CAL_FECHA#')</code>
+                </body>
+            </master>
             <master>
                 <id>master_1</id>
                 <table>
@@ -211,11 +234,11 @@
                     JOIN cursos on cursos.id = grupos.id_cursos_cursodelgrupo
                     LEFT JOIN clientes on clientes.id = cursos.id_clientes_propietario
                     WHERE 
-                        grupos.fechainicio is not null AND
-                        grupos.fechafin is not null
-                        -- AND grupos.id = %(P_GRUPO)s
+                        grupos.fechainicio IS NOT NULL AND
+                        grupos.fechafin IS NOT NULL
+                        AND exists(SELECT aeg.id from alumnos_en_grupos aeg WHERE grupos.id = aeg.id_grupos_grupo)
                     ORDER BY cursos.nombre
-                    --LIMIT %(P_NUMERO_GRUPOS)s
+                    LIMIT %(P_NUMERO_GRUPOS)s
                     </query>
                 </table>
                 <group_header>
@@ -223,6 +246,7 @@
                     <field>CURSOS_NOMBRE</field>
                     <footer_id>gf_cursos</footer_id>
                     <options>
+                        <print_on_new_page/>
                     </options>
                     <outline>
                         <title>#CURSOS_NOMBRE#</title>
@@ -236,7 +260,7 @@
                             <id/>
                             <x1>0</x1>
                             <y1>9</y1>
-                            <x2>100</x2>
+                            <x2>120</x2>
                             <y2>9</y2>
                         </line>
                         <text>
@@ -272,9 +296,10 @@
                     <header>
                         <!--<split_on_new_page/>-->
                         <code>CODE.sum_valor('grupos', 1); CODE.set_valor('alumnos', 0)</code>
+                        <code>CODE.lista_dias = []</code>
                         <text>
                             <id/>
-                            <value>El cuadrado de {{CODE.get_valor('cursos')}} es {{CODE.get_valor('cursos') ** 2}}____{{CODE.get_valor('cursos')}}.{{CODE.get_valor('grupos')}} #GRUPOS_NOMBRE#</value>
+                            <value>El cuadrado de {{CODE.get_valor('cursos')}} es {{CODE.get_valor('cursos') ** 2}}____{{CODE.get_valor('cursos')}}.{{CODE.get_valor('grupos')}} #GRUPOS_NOMBRE# (id=#GRUPOS_ID#)</value>
                             <position>
                                 <left>15</left>
                                 <top>2</top>
@@ -313,13 +338,13 @@
                 <group_footer>
                     <id>gf_grupos</id>
                     <body>
-                        <print_if>CODE.get_valor('alumnos') > 0</print_if>
+                        <print_if>CODE.get_valor('alumnos') &gt; 0</print_if>                        
                         <text>
                             <id/>
-                            <value>Nº de alumnos = {{CODE.get_valor('alumnos')}} (footer de grupos)</value>
+                            <value>Nº de alumnos = {{CODE.get_valor('alumnos')}} (footer de grupos) {{'%2.2f' % self.cur_y}}</value>
                             <position>
                                 <left>18</left>
-                                <top>5</top>
+                                <top>0</top>
                             </position>
                             <size>
                                 <height>3</height>
@@ -363,6 +388,18 @@
                     <level>1</level>
                 </outline>               
                 <body>
+                    <text>
+                        <id/>
+                        <value>{{CODE.draw_calendar(0, self.cur_y / mm - 5, 8, 5, self, first_day=datetime.strptime('#GRUPOS_FECHAINICIO#', '%d/%m/%Y'), id_grupo=#GRUPOS_ID#)}} {{CODE.draw_calendar(60, self.cur_y / mm - 5, 8, 5, self, last_day=datetime.strptime('#GRUPOS_FECHAFIN#', '%d/%m/%Y'), id_grupo=#GRUPOS_ID#)}}</value>
+                        <position>
+                            <left>0</left>
+                            <top>0</top>
+                        </position>
+                        <size>
+                            <width/>
+                            <height>35</height>
+                        </size>
+                    </text>
                 </body>
                 <detail>
                     <id>detail_1</id>
@@ -378,7 +415,7 @@
                             JOIN alumnos_en_grupos aeg on 
                                 alumnos.id = aeg.id_alumnos_alumno and
                                 aeg.id_grupos_grupo = %(GRUPOS_ID)d
-                            ORDER BY aeg.fecha_inicio
+                            ORDER BY "ALUMNOS_ALIAS" --, aeg.fecha_inicio
                         </query>
                         <fields>
                             <field>MATRICULAS_FECHAINICIO</field>
@@ -387,7 +424,7 @@
                     </table>
                     <header>
                         <id/>
-                        <body>
+                        <body>                            
                             <text>
                                 <id/>
                                 <value>Alumnos del grupo</value>
@@ -406,6 +443,15 @@
                                     <style></style>
                                 </font>
                             </text>
+                            <line>
+                                <id/>
+                                <x1>18</x1>
+                                <y1>4</y1>                                
+                                <x2>120</x2>
+                                <y2>4</y2>
+                                <color>LTGRAY</color>
+                                <pattern>3 1</pattern>                                
+                            </line>
                         </body>
                     </header>
                     <outline>
@@ -414,11 +460,37 @@
                         <level>2</level>
                     </outline>                    
                     <body>                        
-                        <print_if>CODE.get_valor('alumnos') &lt; 3</print_if>
+                        <print_if>CODE.get_valor('alumnos') &lt; 1000</print_if>
                         <code>CODE.sum_valor('alumnos', 1)</code>
+                        <line>
+                            <id/>
+                            <x1>18</x1>
+                            <y1>0</y1>                                
+                            <x2>18</x2>
+                            <y2>4</y2>
+                            <color>LTGRAY</color>                               
+                        </line>
+                        <line>
+                            <id/>
+                            <x1>120</x1>
+                            <y1>0</y1>                                
+                            <x2>120</x2>
+                            <y2>4</y2>
+                            <color>LTGRAY</color>                    
+                        </line>
+                        <line>
+                            <id/>
+                            <x1>18</x1>
+                            <y1>4</y1>                                
+                            <x2>120</x2>
+                            <y2>4</y2>
+                            <color>LTGRAY</color>
+                            <pattern>1 1</pattern>
+                        </line>
+                        <code>l = reports.Line(); l.x1 = 0; l.x2 = 3; self.writeLine(l, self.cur_y)</code>                                                
                         <text>
                             <id>txt_alumno</id>                            
-                            <value>¡1 &lt; 100 = {{str(1 &lt; 100).upper()}}! {{CODE.get_valor('alumnos')}}. {{('#ALUMNOS_ALIAS# ' * 2).lower()}}</value>
+                            <value>{{CODE.get_valor('alumnos')}}. {{('#ALUMNOS_ALIAS# ').lower()}}</value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>
@@ -433,7 +505,7 @@
                                 <color></color>
                                 <style></style>
                             </font>
-                        </text>                        
+                        </text>
                         <text>
                             <id>txt_alumno</id>
                             <value>{{'(desde #AEG_FECHAINICIO# hasta #AEG_FECHAFIN#)'.upper()}} {{CODE.get_date('%d/%m')}}</value>
@@ -454,6 +526,90 @@
                         </text>
                     </body>
                 </detail>                
+            </master>
+        </body>
+    </_page>
+    <page>
+        <id/>
+        <number>2</number>
+        <body>
+            <master>
+                <id/>
+                <table>
+                    <query>
+                        SELECT
+                            alumnos.id as "ALUMNOS_ID",
+                            alias_alumno(alumnos.id) as "ALUMNOS_ALIAS"
+                        FROM alumnos
+                        JOIN alumnos_en_grupos aeg ON
+                            aeg.id_alumnos_alumno = alumnos.id AND
+                            aeg.id_grupos_grupo = %(P_GRUPO)s
+                        ORDER BY "ALUMNOS_ALIAS"                            
+                    </query>
+                    <fields>
+                        <field>ALUMNOS_ID</field>
+                        <field>ALUMNOS_ALIAS</field>
+                    </fields>
+                </table>
+                <body>
+                    <text>
+                        <id/>
+                        <value>#ALUMNOS_ALIAS#</value>
+                        <position>
+                            <left>5</left>
+                            <top>0</top>
+                        </position>
+                        <size>
+                            <width/>
+                            <height>6</height>
+                        </size>
+                    </text>
+                </body>
+                <detail>
+                    <id/>
+                    <master_field>ALUMNOS_ID</master_field>
+                    <table>
+                        <query>
+                            SELECT
+                                cal.id as "CAL_ID",
+                                format_fecha('dd/mm/yyyy', cal.fecha) as "CAL_FECHA",
+                                format_hora('hh:mm', cdg.horainicio) as "CDG_HORAINICIO",
+                                format_hora('hh:mm', cdg.horafin) as "CDG_HORAFIN"
+                            FROM asistencia_de_alumnos ada
+                            JOIN clases_de_grupos cdg ON
+                                cdg.id = ada.id_clases_de_grupos_clase
+                            JOIN calendarios cal ON
+                                cal.id = cdg.id_calendarios_fecha
+                            WHERE ada.id_alumnos_alumno = %(ALUMNOS_ID)s
+                            ORDER BY "CAL_FECHA", "CDG_HORAINICIO"
+                        </query>
+                        <fields>
+                            <field>CAL_FECHA</field>
+                            <field>CDG_HORAINICIO</field>
+                            <field>CDG_HORAFIN</field>
+                        </fields>
+                    </table>
+                    <body>
+                        <text>
+                            <id/>
+                            <value>#CAL_FECHA# #CDG_HORAINICIO#-#CDG_HORAFIN#</value>
+                            <position>
+                                <left>10</left>
+                                <top>0</top>
+                            </position>
+                            <size>
+                                <width/>
+                                <height>3</height>
+                            </size>
+                            <font>
+                                <name>Tahoma</name>
+                                <size>6</size>
+                                <color></color>
+                                <style/>
+                            </font>
+                        </text>
+                    </body>
+                </detail>
             </master>
         </body>
     </page>

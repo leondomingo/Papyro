@@ -4,7 +4,7 @@ from unidadescompartidas import conexion
 from reports import Report
 from reportPdf import ReportPdf
 import cStringIO
-from lxml import etree
+#from lxml import etree
 #from reportPlainText import ReportPlainText
 #import os.path
 #from libpy.implementation.enviaremail import enviar_email
@@ -24,7 +24,7 @@ conector = conexion()
 informe = Report(reportfile='./report1/report1.xml')
 
 #print informe.xml
-etree.fromstring(informe.xml)
+#etree.fromstring(informe.xml)
 #exit()
 
 
@@ -42,7 +42,7 @@ f_pdf = cStringIO.StringIO()
 f_out = file('./report1.pdf', 'wb')
 try:    
     pdf.writeReport(pdf_file=f_pdf, params=[('P_NUMERO_GRUPOS', '30', 'int'),
-                                            ('P_GRUPO', '390', 'int')], debug=False)
+                                            ('P_GRUPO', '610', 'int')], debug=False)
     
     f_out.write(f_pdf.getvalue())
 

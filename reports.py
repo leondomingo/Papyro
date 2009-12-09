@@ -455,6 +455,7 @@ class Master(NotPrintableItem):
         self.id = id or ''
         self.table = Table()
         self.outline = None
+        self.print_on_new_page = False
         self.group_headers = []
         self.group_footers = []
         self.body = Body()
@@ -575,6 +576,8 @@ class Line(PrintableItem):
         self.y1 = None
         self.x2 = 0
         self.y2 = None
+        self.color = None
+        self.pattern = None
         self.print_if = None
         
     def getxml(self):
@@ -585,6 +588,8 @@ class Line(PrintableItem):
             '  <y1>' + str(self.y1 or '') + '</y1>\n' + \
             '  <x2>' + str(self.x2) + '</x2>\n' + \
             '  <y2>' + str(self.y2 or '') + '</y2>\n' + \
+            '  <color>' + (self.color or '') + '</color>\n' + \
+            '  <pattern>' + (self.pattern or '') + '</pattern>\n' + \
             '  <print_if>' + proper_text(self.print_if) + '</print_if>\n' + \
             ReportItem.getxml(self) + \
             '</line>\n'
@@ -624,6 +629,14 @@ class Line(PrintableItem):
         else:
             self.top = y2
             
+        color = line.find('color')
+        if color != None:
+            self.color = color.text
+            
+        pattern = line.find('pattern')
+        if pattern != None:
+            self.pattern = pattern.text
+            
         ReportItem.setxml(self, valor)
             
     xml = property(getxml, setxml)
@@ -660,8 +673,8 @@ class Image(PrintableItem):
             
         ReportItem.setxml(self, valor)
             
-    xml = property(getxml, setxml)    
-    
+    xml = property(getxml, setxml)
+        
 class TextFile(PrintableItem):
     def __init__(self, id=None):
         PrintableItem.__init__(self)
