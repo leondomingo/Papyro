@@ -78,8 +78,8 @@ class ReportPdf(ReportBase):
         # draw margins
         if self.debug:
             self.canvas.saveState()
-            self.canvas.setFillColorRGB(r=0.5, g=0.6, b=0.3)
-            self.canvas.rect(0, -self.hg, self.wd, self.hg, stroke=0, fill=1)
+            self.canvas.setFillColorRGB(r=0.5, g=0.5, b=0.3)
+            self.canvas.rect(0, -self.hg, self.wd, self.hg, stroke=1, fill=1)
             self.canvas.restoreState()
         
         # font
