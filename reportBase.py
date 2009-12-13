@@ -7,6 +7,7 @@ import reports
 from reportlab.lib.units import mm
 
 class ReportBase(object):
+    """Base class for report generators (ReportPpf = PDF, ReportPlainText = Text, etc)"""
     
     def __init__(self, report, conector):
         self.report = report
@@ -27,6 +28,8 @@ class ReportBase(object):
         return datetime.now().strftime(fmt)        
                     
     def apply_constants(self, text):
+        """Looks for constants ocurrences in 'text' and returns the same text
+        replacing those constants with its actual value"""
         
         # PAGE_NO
         text = text.replace('#PAGE_NO#', str(self.page_no))
@@ -43,13 +46,18 @@ class ReportBase(object):
         return text
     
     def apply_parameters(self, text):
+        """Replaces param ocurrences in 'text' with their actual values and
+        return the modified text"""
         for par in self.report.params.params:
-            parameter = '#%s#' % par[0]
-            text = self.replace_parameter(text, parameter, par[1])
+            if par[1] != None:
+                parameter = '#%s#' % par[0]
+                text = self.replace_parameter(text, parameter, par[1])
             
         return text
     
     def apply_data(self, text, data):
+        """Replaces field (of 'data') ocurrences in 'text' with their actual
+        values and return the modified text"""
         if data != None:
             for k in data.keys():
                 parameter = '#%s#' % str(k)
@@ -58,7 +66,7 @@ class ReportBase(object):
         return text
     
     def check_condition(self, cond, mdata=None, ddata=None):
-        """Check the condition of the Python code 'cond' and returns True or False.
+        """Check the Python condition 'cond' and returns True or False.
         If 'cond' is empty returns True."""
         if (cond or '') != '':
             # apply "constants"
@@ -99,7 +107,7 @@ class ReportBase(object):
         return min_y    
     
     def compile_text(self, text):
-        """Replace every piece of Python code inside {{...}} with the returning
+        """Replace every piece of Python code inside {{ }} with the returning
         value of its execution"""
         
         text_out = ''
@@ -156,10 +164,21 @@ class ReportBase(object):
         return text
     
     def inside_code(self, text, i):
-        
-        a = text[i:].find('}}')
-        
-        return i > a   
+        """Returns wheter position 'i' in 'text' is inside a Python code block {{ }}"""         
+        return i > text[i:].find('}}')
     
     def quote_string(self, value):
         return value.replace("'", "\\'")
+    
+    def is_optional(self, text, i):
+        a = text.find('[', i)
+        if a == -1: a = sys.maxint
+        
+        b = text.find(']', i)
+        
+        c = text.rfind(']', 0, i)
+        d = text.rfind('[', 0, i)
+         
+        return c < d < i < b < a, d, b
+    
+    

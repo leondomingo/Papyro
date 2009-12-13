@@ -25,7 +25,7 @@
         </style>
     </font>
     <params>
-        <param name="P_NUMERO_GRUPOS" type="int">50</param>
+        <param name="P_NUMERO_GRUPOS" type="int"></param>
         <param name="P_GRUPO" type="int"></param>
     </params>
     <report_title>
@@ -233,12 +233,13 @@
                     FROM grupos
                     JOIN cursos on cursos.id = grupos.id_cursos_cursodelgrupo
                     LEFT JOIN clientes on clientes.id = cursos.id_clientes_propietario
-                    WHERE 
+                    WHERE
+                        [grupos.id = %(P_GRUPO)s AND]
                         grupos.fechainicio IS NOT NULL AND
                         grupos.fechafin IS NOT NULL
                         AND exists(SELECT aeg.id from alumnos_en_grupos aeg WHERE grupos.id = aeg.id_grupos_grupo)
                     ORDER BY cursos.nombre
-                    LIMIT %(P_NUMERO_GRUPOS)s
+                    [LIMIT %(P_NUMERO_GRUPOS)s]
                     </query>
                 </table>
                 <group_header>
@@ -549,7 +550,7 @@
             </master>
         </body>
     </page>
-    <page>
+    <_page>
         <id/>
         <number>2</number>
         <body>
@@ -562,8 +563,8 @@
                             alias_alumno(alumnos.id) as "ALUMNOS_ALIAS"
                         FROM alumnos
                         JOIN alumnos_en_grupos aeg ON
-                            aeg.id_alumnos_alumno = alumnos.id AND
-                            aeg.id_grupos_grupo = %(P_GRUPO)s
+                            aeg.id_alumnos_alumno = alumnos.id
+                            [AND aeg.id_grupos_grupo = %(P_GRUPO)s]
                         ORDER BY "ALUMNOS_ALIAS"                            
                     </query>
                     <fields>
@@ -632,5 +633,5 @@
                 </detail>
             </master>
         </body>
-    </page>
+    </_page>
 </report>

@@ -41,8 +41,8 @@ pdf = ReportPdf(informe, conector)
 f_pdf = cStringIO.StringIO()
 f_out = file('./report1.pdf', 'wb')
 try:    
-    pdf.writeReport(pdf_file=f_pdf, params=[('P_NUMERO_GRUPOS', '30', 'int'),
-                                            ('P_GRUPO', '610', 'int')], debug=False)
+    pdf.writeReport(pdf_file=f_pdf, params=[('P_NUMERO_GRUPOS', None, 'int')], debug=False)
+    #('P_NUMERO_GRUPOS', '30', 'int'),
     
     f_out.write(f_pdf.getvalue())
 

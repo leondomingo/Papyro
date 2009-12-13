@@ -10,6 +10,7 @@ import reports
 import os.path
 
 class ReportPdf(ReportBase):
+    """Report generator in PDF files"""
     
     def __init__(self, report, conector):
         ReportBase.__init__(self, report, conector)
@@ -32,6 +33,8 @@ class ReportPdf(ReportBase):
                 replace('YELLOW', '00FFFF')
                 
     def get_rgb(self, hex):
+        """Returns a tuple (r, g, b) equivalent to the 'hex' string (RRGGBB)
+        r, g, b are in the interval [0.0, 1.0] (0, 255)."""
         r = int(hex[0:2], 16) / 255.0
         g = int(hex[2:4], 16) / 255.0
         b = int(hex[4:6], 16) / 255.0
@@ -39,6 +42,7 @@ class ReportPdf(ReportBase):
         return r, g, b    
         
     def newPage(self, save=False):
+        """Creates and initializes a new page"""
         
         if save:
             # page_footer        
@@ -90,6 +94,13 @@ class ReportPdf(ReportBase):
             self.writePageHeader(self.cur_page.page_header)
         
     def writeReport(self, pdf_file, c=None, params=None, debug=False):
+        """Write a report (reports.Report) in PDF
+        'pdf_file' is the path of a file or a file-object in which the report will be ...
+        'c' represents and 'external canvas', from another pdf_file, for example.
+        'params' a list of tuples (<name>, <type>, <default value>) which will be passed
+        to the report.
+        'debug' If True some useful information will be printed as the report is generated.
+        """
         
         self.debug = debug
         
@@ -151,14 +162,14 @@ class ReportPdf(ReportBase):
         
         # get param names
         param_names = [param[0] for param in self.report.params.params]
-            
+        
         # params
         if params != None:
             for p in params:
                 if p[0] in param_names:
                     i = param_names.index(p[0])
-                    self.report.params.params[i] = p
-                    
+                    self.report.params.params[i] = p                    
+                   
         self.canvas.setLineWidth(0.1)
                     
         self.cur_page = self.report.pages[0]
@@ -166,6 +177,7 @@ class ReportPdf(ReportBase):
         self.newPage()
         first_page = True
         
+        # pdf properties
         self.canvas.setTitle(str(self.report.name))
         self.canvas.setAuthor(str(self.report.author))
         self.canvas.setSubject(str(self.report.subject))
@@ -188,10 +200,14 @@ class ReportPdf(ReportBase):
         self.canvas.save()
     
     def writeReportTitle(self, title):
+        """Writes a title for the report (reports.ReportTitle)
+        A report title is very similar to a page header but it's only printed on
+        first page"""
         self.cur_item = title
         self.writeBody(title.body, 0)
     
     def writeReporPage(self, page):
+        """Writes a page (reports.Page) of the report"""
                 
         if self.debug: print 'ReportPage:', str(page)
             
@@ -226,16 +242,14 @@ class ReportPdf(ReportBase):
         y0 = y  
         if only_text:
             
-#            print '***POSICIONAL***'
-            
-            # posicional
-            # cada elemento tiene una posición predefinida
+            # positional
+            # every item has a predefined position
             
             text_items = []
             text_items_next_page = []
             for item in body.items:
                 if not isinstance(item, reports.Code):
-                    y, new_page = self.getTextHeight(item, y0)
+                    y, new_page = self.getItemHeight(item, y0)
                     if new_page:
                         text_items_next_page.append((item, y))
                     else:
@@ -264,7 +278,7 @@ class ReportPdf(ReportBase):
                 if y < min_y: min_y = y                
             
             if text_items_next_page != []:
-                # crear nueva página
+                # create a new page
                 new_page = True
                 if body.split_on_new_page:
                     self.newPage(save=True)
@@ -286,10 +300,8 @@ class ReportPdf(ReportBase):
             return min_y, new_page
                 
         else:
-#            print '***ACUMULATIVA***'
-            
-            # acumulativa
-            # la posición de un elemento depende de todos los anteriores
+            # acumulative
+            # an item's position depends on the prior ones
             
             for item in body.items:
                 # Master
@@ -307,7 +319,8 @@ class ReportPdf(ReportBase):
             
         return min_y, new_page
     
-    def writeOutline(self, outline, mdata=None, ddata=None):        
+    def writeOutline(self, outline, mdata=None, ddata=None):
+                
         if outline != None:
             title = outline.title
             
@@ -341,9 +354,22 @@ class ReportPdf(ReportBase):
         # parameters
         master_dict = {}
         for par in self.report.params.params:
-            if sql.find(par[0]):
-                master_dict[par[0]] = par[1]
-                
+            i = sql.find(par[0])
+            if i != -1:
+                opt = self.is_optional(sql, i)
+                if par[1] is None:
+                    if opt[0]:
+                        # remove optional part
+                        sql = sql[:opt[1]] + sql[(opt[2]+1):]
+                    else:
+                        # a must-exists parameter
+                        raise Exception('Parameter "%s" must be not null' % par[0])
+                    
+                else:
+                    master_dict[par[0]] = par[1]
+                    
+        sql = sql.replace('[', '').replace(']', '')
+        
         if master_dict != {}:
             sql %= master_dict
             
@@ -353,22 +379,18 @@ class ReportPdf(ReportBase):
         new_page = False
         values = [None] * len(master.group_headers)
         footers = []
-        for gh in master.group_headers:            
-            # find the "footer" for this "header"
-            footer = None
-            for gf in master.group_footers:
-                if gf.id == gh.footer_id:                    
-                    footer = gf
-                    break
-                    
-            footers.append(footer)
+        gf_ids = [gf.id for gf in master.group_footers]
+        for gh in master.group_headers:
+            try:
+                footers.append(master.group_footers[gf_ids.index(gh.footer_id)])
+            except ValueError:
+                footers.append(None)
         
         data = self.conector.conexion.execute(sql).fetchall()
-        n = 0           
-        for mdata in data:
-            for i in xrange(len(master.group_headers)):
-                if mdata[master.group_headers[i].field] != values[i]:
-                    if not first_gh and master.group_headers[i].options.print_on_new_page:
+        for mdata, n in zip(data, xrange(len(data))):
+            for group_h, i in zip(master.group_headers, xrange(len(master.group_headers))):
+                if mdata[group_h.field] != values[i]:
+                    if not first_gh and group_h.options.print_on_new_page:
                         self.newPage(save=True)
                         y = 0
                         min_y = y
@@ -376,10 +398,10 @@ class ReportPdf(ReportBase):
                     first_gh = False
                     
                     # group_header    
-                    y, new_page = self.writeBody(master.group_headers[i].header, y, mdata)
-                    values[i] = mdata[master.group_headers[i].field]
+                    y, new_page = self.writeBody(group_h.header, y, mdata)
+                    values[i] = mdata[group_h.field]
                     
-                    self.writeOutline(master.group_headers[i].outline, mdata) 
+                    self.writeOutline(group_h.outline, mdata)
                     
                     if not new_page:
                         if y < min_y: min_y = y
@@ -397,18 +419,18 @@ class ReportPdf(ReportBase):
                 min_y = y
             
             # master:detail
-            for detalle in master.details:
-                y, new_page = self.writeDetail(detalle, y, mdata)
+            for detail in master.details:
+                y, new_page = self.writeDetail(detail, y, mdata)
                 
                 if not new_page:
                     if y < min_y: min_y = y
                 else:
                     min_y = y
 
-            for i in xrange(len(master.group_headers) - 1, -1, -1):
+            for group_h, i in reversed(zip(master.group_headers, xrange(len(master.group_headers)))):
                 # exists next record?
                 if len(data) > (n + 1):
-                    next_value = data[n + 1][master.group_headers[i].field]
+                    next_value = data[n + 1][group_h.field]
                 else:
                     # there's no "next" record
                     next_value = None
@@ -422,8 +444,6 @@ class ReportPdf(ReportBase):
                             if y < min_y: min_y = y
                         else:
                             min_y = y
-                                                                            
-            n += 1
                 
         return min_y, new_page        
     
@@ -437,11 +457,25 @@ class ReportPdf(ReportBase):
         detail_dict[detail.master_field] = mdata[detail.master_field]       
         
         sql = detail.table.query
-        
+                
         # parameters 
         for par in self.report.params.params:
-            if sql.find(par[0]):
-                detail_dict[par[0]] = par[1]
+            i = sql.find(par[0])
+            if i != -1:
+                opt = self.is_optional(sql, i)
+                print opt
+                if par[1] is None:
+                    if opt[0]:
+                        # remove optional part (between '[' and ']')
+                        sql = sql[:opt[1]] + sql[(opt[2]+1):]                    
+                    else:
+                        # a must-exists parameter
+                        raise Exception('Parameter "%s" must be not null' % par[0])
+                        
+                else:
+                    detail_dict[par[0]] = par[1]
+                    
+        sql = sql.replace('[', '').replace(']', '')
                 
         sql %= detail_dict
         
@@ -475,6 +509,9 @@ class ReportPdf(ReportBase):
         return min_y, new_page
     
     def writePageHeader(self, page_header):
+        """Writes a page header (reports.PageHeader) for the current page.
+        A page header is a fixed-height area which is printed at the top of the page."""
+        
         self.cur_item = page_header
         
         self.canvas.saveState()
@@ -484,6 +521,9 @@ class ReportPdf(ReportBase):
         self.canvas.restoreState()
     
     def writePageFooter(self, page_footer):
+        """Writes a page footer (reports.PageFooter) for the current page.
+        A page footer is a fixed-height are which is printed at the bottom of the page"""
+        
         self.cur_item = page_footer
         
         self.canvas.saveState()
@@ -491,32 +531,12 @@ class ReportPdf(ReportBase):
         if self.debug: self.canvas.rect(0, 0, self.wd, -page_footer.height * mm)                    
         self.writeBody(page_footer.body, 0)
         self.canvas.restoreState()
-    
-    def writeGroupHeader(self, group_header, y, data):
-        
-        self.cur_item = group_header
-        self.cur_y = y
-        
-        field_value = None
-        min_y = y
-        new_page = False
-        for mdata in data:
-            if mdata[group_header.field] != field_value:
-                y, new_page = self.writeBody(group_header.header, y, mdata) #, ddata)
-                field_value = mdata[group_header.field]
-                
-            y, new_page = self.writeBody(group_header.body, y, mdata)
             
-            if not new_page:
-                if y < min_y: min_y = y
-            else:
-                min_y = y
-                
-        return min_y, new_page
-    
-    def getTextHeight(self, text, y):
+    def getItemHeight(self, item, y):
+        """Returns the height of the 'item'"""
+        
         new_page = False
-        y -= (text.top * mm + text.height * mm)
+        y -= (item.top * mm + item.height * mm)
         if y < -self.hg:
             y = y + self.hg # y = y - (-self.hg)
             new_page = True

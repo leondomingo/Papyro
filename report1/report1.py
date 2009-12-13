@@ -96,7 +96,7 @@ def draw_calendar(left, top, w_cell, h_cell, pdf_report, first_day=None,
     week = 1
     while day.month == day1.month:
         wd = day.weekday()
-        if wd == 0:
+        if wd == 0 and day.day > 1:
             week += 1
             
         pdf_report.canvas.saveState()            
