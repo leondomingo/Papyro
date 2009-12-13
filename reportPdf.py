@@ -193,7 +193,6 @@ class ReportPdf(ReportBase):
                 self.newPage(save=True)
                 
             self.writeReporPage(page)
-            self.canvas.showPage()
             
             first_page = False
                         
