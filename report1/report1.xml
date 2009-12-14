@@ -550,7 +550,7 @@
             </master>
         </body>
     </page>
-    <_page>
+    <page>
         <id/>
         <number>2</number>
         <body>
@@ -564,7 +564,7 @@
                         FROM alumnos
                         JOIN alumnos_en_grupos aeg ON
                             aeg.id_alumnos_alumno = alumnos.id
-                            [AND aeg.id_grupos_grupo = %(P_GRUPO)s]
+                            AND aeg.id_grupos_grupo = 610 --[%(P_GRUPO)s]
                         ORDER BY "ALUMNOS_ALIAS"                            
                     </query>
                     <fields>
@@ -633,5 +633,5 @@
                 </detail>
             </master>
         </body>
-    </_page>
+    </page>
 </report>
