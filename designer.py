@@ -2,6 +2,7 @@
 
 from reports import Report
 from lxml import etree
+from datetime import datetime
 
 import pygtk
 pygtk.require('2.0')
@@ -19,38 +20,32 @@ class Designer(object):
         self.window.connect('destroy', self.window_destroy)
         
         # botones inferiores
-        hbox_btn_inf = gtk.HBox(homogeneous=False)
+        hbx_btn_inf = gtk.HBox(homogeneous=False)
         
         self.btn_exit = gtk.Button('Salir')
         self.btn_exit.connect('clicked', self.btn_exit_clicked)
         self.btn_exit.set_size_request(75, -1)
-        hbox_btn_inf.pack_end(self.btn_exit, False)
+        hbx_btn_inf.pack_end(self.btn_exit, False)
         
-        vbox_1 = gtk.VBox(homogeneous=False)
-        vbox_1.pack_end(hbox_btn_inf, False)
+        self.btn_add = gtk.Button('[1]')
+        self.btn_add.connect('clicked', self.btn_add_clicked)
+        hbx_btn_inf.pack_start(self.btn_add, False)
+
+        self.btn_add2 = gtk.Button('[2]')
+        self.btn_add2.connect('clicked', self.btn_add2_clicked)
+        hbx_btn_inf.pack_start(self.btn_add2, False)
+                
+        self.vbx_botones = gtk.VBox(homogeneous=False)
         
-        informe = Report(reportfile='./report1/report1.xml')
+        self.scw = gtk.ScrolledWindow()
+        self.scw.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        self.scw.add_with_viewport(self.vbx_botones)
         
-        # tree
-        hbox = gtk.HBox(homogeneous=False)
-        vbox_1.pack_start(hbox, False)
+        vbx_principal = gtk.VBox(homogeneous=False)
+        vbx_principal.pack_start(self.scw)
+        vbx_principal.pack_end(hbx_btn_inf, False)        
         
-        self.ts_report = gtk.TreeStore(str)        
-        self.tv_report = gtk.TreeView(self.ts_report)
-        
-        self.col_report = gtk.TreeViewColumn('Report')
-        
-        self.tv_report.append_column(self.col_report)
-        
-        self.cell_report = gtk.CellRendererText()
-        self.col_report.pack_start(self.cell_report, True)
-        self.col_report.add_attribute(self.cell_report, 'text', 0)
-        
-        self.add_data(informe.xml, None)    
-        
-        hbox.pack_start(self.tv_report)
-        
-        self.window.add(vbox_1)
+        self.window.add(vbx_principal)
         
         self.window.show_all()
         
@@ -78,24 +73,20 @@ class Designer(object):
         else:
             return True
         
+    def btn_add_clicked(self, widget):
+        nuevo_boton = gtk.Button(datetime.now().strftime('%H:%M:%S'))
+        self.vbx_botones.pack_start(nuevo_boton, False, True, 1)
+        nuevo_boton.show()
+        
+    def btn_add2_clicked(self, widget):
+        nuevo_boton = gtk.Button(datetime.now().strftime('%H:%M:%S'))
+        nuevo_boton.set_size_request(-1, 100)
+        self.vbx_botones.pack_end(nuevo_boton, False, True, 1)
+        nuevo_boton.show()
+        
     def btn_exit_clicked(self, widget):
         self.window.destroy()
-        
-    def add_data(self, xml, parent):
-        
-        if xml != None:        
-            node = etree.fromstring(xml)
-            
-            if node.text != None:
-                text = '%s= %s' % (node.tag, node.text)
-            else:
-                text = node.tag
-            
-            tree_node = self.ts_report.append(parent, [text])
-            
-            for ch in node.iterchildren():            
-                self.add_data(etree.tostring(ch), tree_node)
-            
+                    
 if __name__ == '__main__':
     designer = Designer()
     designer.main()

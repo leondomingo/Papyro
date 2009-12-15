@@ -359,7 +359,7 @@ class Table(NotPrintableItem):
     def getxml(self):
         valor = \
             '<table>\n' + \
-            '  <query>' + self.query + '</query>\n' + \
+            '  <query>' + proper_text(self.query) + '</query>\n' + \
             self.getxmlfields() + \
             self.body.xml + \
             '</table>\n'
