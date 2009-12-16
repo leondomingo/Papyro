@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from reports import Report
-from lxml import etree
+#from reports import Report
 from datetime import datetime
 
 import pygtk
 pygtk.require('2.0')
-import gtk, gobject
+import gtk #, gobject, pango
 
 class Designer(object):
     
     def __init__(self):        
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Papyro designer')
+        self.window.set_position(gtk.WIN_POS_CENTER)
         #self.window.set_default_size(500, 500)
-        self.window.resize(800, 600)
+        self.window.resize(1000, 600)
         self.window.set_position(gtk.WIN_POS_CENTER)
         self.window.connect('delete-event', self.window_delete_event)
         self.window.connect('destroy', self.window_destroy)
@@ -41,8 +41,57 @@ class Designer(object):
         self.scw.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.scw.add_with_viewport(self.vbx_botones)
         
+        # bandas
+        vbx_bandas = gtk.VBox(homogeneous=False)
+        vbx_bandas.set_size_request(100, -1)
+        
+        # page header
+        btn_pageheader = gtk.Button('Page Header')
+        vbx_bandas.pack_start(btn_pageheader, False, False, 2)
+        
+        # page footer
+        btn_pagefooter = gtk.Button('Page Footer')
+        vbx_bandas.pack_start(btn_pagefooter, False, False, 2)
+        
+        # master
+        btn_master = gtk.Button('Master')
+        vbx_bandas.pack_start(btn_master, False, False, 2)
+        
+        # group header
+        btn_gheader = gtk.Button('Group Header')
+        vbx_bandas.pack_start(btn_gheader, False, False, 2)
+        
+        # group footer
+        btn_gfooter = gtk.Button('Group Footer')
+        vbx_bandas.pack_start(btn_gfooter, False, False, 2)
+        
+        # detail
+        btn_detail = gtk.Button('Detail')
+        vbx_bandas.pack_start(btn_detail, False, False, 2)
+        
+        # datos de la banda
+        vbx_datosbanda = gtk.VBox(homogeneous=False)
+        vbx_datosbanda.set_size_request(250, -1)
+        
+        hbx_idbanda = gtk.HBox(homogeneous=False)
+        edt_idbanda = gtk.Entry()
+        edt_idbanda.set_text('(id)')
+        
+        lbl_tipobanda = gtk.Label('<b>Page Header</b>')
+        lbl_tipobanda.set_use_markup(True)                
+
+        hbx_idbanda.pack_start(lbl_tipobanda, False, False, 3)
+        hbx_idbanda.pack_start(edt_idbanda, True)
+        
+        vbx_datosbanda.pack_start(hbx_idbanda, False, False)        
+        
+        hbx_principal = gtk.HBox(homogeneous=False)
+        hbx_principal.pack_start(vbx_bandas, False)
+        hbx_principal.pack_start(self.scw)
+        hbx_principal.pack_start(vbx_datosbanda, False)        
+        
         vbx_principal = gtk.VBox(homogeneous=False)
-        vbx_principal.pack_start(self.scw)
+        vbx_principal.pack_start(hbx_principal)        
         vbx_principal.pack_end(hbx_btn_inf, False)        
         
         self.window.add(vbx_principal)
