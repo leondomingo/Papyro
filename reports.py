@@ -1199,9 +1199,16 @@ class Report(object):
         report = etree.fromstring(valor)
         
         self.name = report.find('name').text
-        self.author = report.find('author').text or ''
-        self.subject = report.find('subject').text or ''
-        self.keywords = report.find('keywords').text or ''
+        
+        # author, subject, keywords (opcionales)
+        author = report.find('author')
+        if author != None: self.author = author.text or ''
+        
+        subject = report.find('subject')
+        if subject != None: self.subject = subject.text or ''
+        
+        keywords = report.find('keywords')
+        if keywords != None: self.keywords = keywords.text or ''
         
         if report.find('font') != None:
             self.font.xml = etree.tostring(report.find('font'))
