@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #from reports import Report
-from datetime import datetime
+from datetime import datetime 
 
 import pygtk
 pygtk.require('2.0')
