@@ -30,7 +30,7 @@
     </params>
     <report_title>
         <id>title_1</id>
-        <body></body>
+        <body/>
     </report_title>
     <script>
         <file>report1.py</file>
@@ -42,7 +42,7 @@
             <id>page_header_1</id>
             <size>
                 <height>25</height>
-                <width></width>
+                <width/>
             </size>
             <options>
                 <print_on_first_page/>
@@ -79,7 +79,7 @@
                     </position>
                     <size>
                         <height>3</height>
-                        <width></width>
+                        <width/>
                     </size>
                 </text>
                 <text>
@@ -144,8 +144,8 @@
                     <font>
                         <name>Georgia</name>
                         <size>20</size>
-                        <color></color>
-                        <style></style>
+                        <color/>
+                        <style/>
                     </font>
                 </text>                
                 <text>
@@ -163,8 +163,8 @@
                     <font>
                         <name>Verdana</name>
                         <size>9</size>
-                        <color></color>
-                        <style></style>
+                        <color/>
+                        <style/>
                     </font>
                 </text>
                 <text>
@@ -182,8 +182,8 @@
                     <font>
                         <name>Verdana</name>
                         <size>9</size>
-                        <color></color>
-                        <style></style>
+                        <color/>
+                        <style/>
                     </font>
                 </text>
             </body>
@@ -252,7 +252,7 @@
                     <outline>
                         <title>#CURSOS_NOMBRE#</title>
                         <key>C_#CURSOS_ID#</key>
-                        <level></level>
+                        <level/>
                     </outline>
                     <header>
                         <code>CODE.sum_valor('cursos', 1)</code>
@@ -276,10 +276,10 @@
                                 <width>0</width>
                             </size>
                             <font>
-                                <name></name>
+                                <name/>
                                 <size>9</size>
-                                <color></color>
-                                <style></style>
+                                <color/>
+                                <style/>
                             </font>
                         </text>                       
                     </header>
@@ -312,8 +312,8 @@
                             <font>
                                 <name>Arial</name>
                                 <size>7</size>
-                                <color></color>
-                                <style></style>
+                                <color/>
+                                <style/>
                             </font>
                         </text>
                         <text>
@@ -330,8 +330,8 @@
                             <font>
                                 <name>MsSanSerif</name>
                                 <size>5</size>
-                                <color></color>
-                                <style></style>
+                                <color/>
+                                <style/>
                             </font>
                         </text>
                     </header>
@@ -354,8 +354,8 @@
                             <font>
                                 <name>VeraSans</name>
                                 <size>5</size>
-                                <color></color>
-                                <style></style>
+                                <color/>
+                                <style/>
                             </font>                            
                         </text>
                     </body>
@@ -377,8 +377,8 @@
                             <font>
                                 <name>Arial</name>
                                 <size>6</size>
-                                <color></color>
-                                <style></style>
+                                <color/>
+                                <style/>
                             </font>                            
                         </text>
                     </body>
@@ -427,8 +427,8 @@
                                 <font>
                                     <name>VeraSans</name>
                                     <size>5</size>
-                                    <color></color>
-                                    <style></style>
+                                    <color/>
+                                    <style/>
                                 </font>
                             </text>
                             <line>
@@ -625,7 +625,7 @@
                             <font>
                                 <name>Tahoma</name>
                                 <size>6</size>
-                                <color></color>
+                                <color/>
                                 <style/>
                             </font>
                         </text>

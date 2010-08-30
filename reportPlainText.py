@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from reportBase import ReportBase
 
+from reportBase import ReportBase
 import reports
 import cStringIO
 import os.path
