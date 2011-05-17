@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from unidadescompartidas import conexion
+from libpy.conexion import Conexion
 from reports import Report
 from reportPdf import ReportPdf
 import cStringIO
@@ -9,7 +9,7 @@ import cStringIO
 #import os.path
 #from libpy.implementation.enviaremail import enviar_email
 
-conector = conexion()
+conector = Conexion()
 
 #report_path = os.path.join(conector.datosconexion.getVariable('ruta_informes'), 
 #                           'MailResumenMensual/ResumenMensualEnglish.xml')
