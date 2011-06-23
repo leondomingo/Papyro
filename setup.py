@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='paPyro',
-      version='1.0.0',
+      version='1.0.1',
       author='León Domingo',
       author_email='leon.domingo@ender.es',
       description=('A PDF report generator written in Python'),
