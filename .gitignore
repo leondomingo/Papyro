@@ -3,6 +3,6 @@
 .pydevproject
 .settings/
 *~
-Papyro.egg-info/
+paPyro.egg-info/
 dist/
 build/
