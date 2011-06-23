@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='paPyro',
-      version='1.0.2',
+      version='1.0.3',
       author='León Domingo',
       author_email='leon.domingo@ender.es',
       description=('A PDF report generator written in Python'),
@@ -14,7 +14,8 @@ setup(name='paPyro',
         'Topic :: Utilities',
       ],
       url='http://www.ender.es',      
-      packages=['papyro'],
+      packages=['papyro',
+                'papyro.ttfonts'],
       package_data={
         'papyro.ttfonts': ['*.ttf'],
       },
