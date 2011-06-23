@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='paPyro',
-      version='1.0.1',
+      version='1.0.2',
       author='León Domingo',
       author_email='leon.domingo@ender.es',
       description=('A PDF report generator written in Python'),
@@ -15,9 +15,9 @@ setup(name='paPyro',
       ],
       url='http://www.ender.es',      
       packages=['papyro'],
-      #package_data={
-      #      'papyro': ['*.*'],
-      #},
+      package_data={
+        'papyro.ttfonts': ['*.ttf'],
+      },
       install_requires=[
         'Neptuno2',
         'ReportLab>=2.5',
