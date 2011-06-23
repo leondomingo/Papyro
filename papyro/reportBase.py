@@ -32,7 +32,7 @@ class ReportBase(object):
         replacing those constants with its actual value"""
         
         # PAGE_NO
-        text = text.replace('#PAGE_NO#', str(self.page_no))
+        text = text.replace('#PAGE_NO#', unicode(self.page_no))
         
         # DATE
         text = text.replace('#DATE#', dt.datetime.now().strftime('%d/%m/%Y'))
@@ -60,8 +60,8 @@ class ReportBase(object):
         values and return the modified text"""
         if data != None:
             for k in data.keys():
-                parameter = '#%s#' % str(k)
-                text = self.replace_parameter(text, parameter, str(data[k]))
+                parameter = '#%s#' % unicode(k)
+                text = self.replace_parameter(text, parameter, unicode(data[k]))
                 
         return text
     
@@ -138,7 +138,7 @@ class ReportBase(object):
         for sc in scripts:
             script_result = eval(sc)
             script_name = '#SCRIPT%d#' % (n + 1)
-            text_out = text_out.replace(script_name, str(script_result))
+            text_out = text_out.replace(script_name, unicode(script_result))
             
             n += 1
             

@@ -14,7 +14,7 @@ class Font(object):
         valor = \
             '<font>\n' + \
             '  <name>' + (self.name or '') + '</name>\n' + \
-            '  <size>' + str(self.size or 0) + '</size>\n' + \
+            '  <size>' + unicode(self.size or 0) + '</size>\n' + \
             '  <color>' + (self.color or '') + '</color>\n' + \
             '  <style>\n' + \
             ('    <bold/>' if self.style[0] else '') + \
@@ -78,12 +78,12 @@ class ReportItem(object):
     def getxml(self):
         valor = \
             '  <position>\n' + \
-            '    <left>' + str(self.left or 0) + '</left>\n' + \
-            '    <top>' + str(self.top or 0) + '</top>\n' + \
+            '    <left>' + unicode(self.left or 0) + '</left>\n' + \
+            '    <top>' + unicode(self.top or 0) + '</top>\n' + \
             '  </position>\n' + \
             '  <size>\n' + \
-            '    <height>' + str(self.height or 0) + '</height>\n' + \
-            '    <width>' + str(self.width or 0) + '</width>\n' + \
+            '    <height>' + unicode(self.height or 0) + '</height>\n' + \
+            '    <width>' + unicode(self.width or 0) + '</width>\n' + \
             '  </size>\n' + \
             self.font.xml
             
@@ -581,10 +581,10 @@ class Line(PrintableItem):
         valor = \
             '<line>\n' + \
             '  <id>' + (self.id or '') + '</id>\n' + \
-            '  <x1>' + str(self.x1) + '</x1>\n' + \
-            '  <y1>' + str(self.y1 or '') + '</y1>\n' + \
-            '  <x2>' + str(self.x2) + '</x2>\n' + \
-            '  <y2>' + str(self.y2 or '') + '</y2>\n' + \
+            '  <x1>' + unicode(self.x1) + '</x1>\n' + \
+            '  <y1>' + unicode(self.y1 or '') + '</y1>\n' + \
+            '  <x2>' + unicode(self.x2) + '</x2>\n' + \
+            '  <y2>' + unicode(self.y2 or '') + '</y2>\n' + \
             '  <color>' + (self.color or '') + '</color>\n' + \
             '  <pattern>' + (self.pattern or '') + '</pattern>\n' + \
             '  <print_if>' + self.print_if + '</print_if>\n' + \
@@ -871,7 +871,7 @@ class CTColumn(NotPrintableItem):
             '<col>\n' + \
             self.header.xml + \
             self.body.xml + \
-            '  <width>' + str(self.width or 0) + '</width>\n' + \
+            '  <width>' + unicode(self.width or 0) + '</width>\n' + \
             '<\col>\n'
             
         return value
@@ -932,7 +932,7 @@ class CTRowHeader(NotPrintableItem):
         value = \
             '<rowheader>\n' + \
             self.header.xml + \
-            '  <height>' + str(self.height or 0) + '</height>\n' + \
+            '  <height>' + unicode(self.height or 0) + '</height>\n' + \
             '</rowheader>\n'
             
         return value
@@ -1048,7 +1048,7 @@ class ReportPage(object):
         valor = \
             '<page>\n' + \
             '  <id>' + self.id + '</id>\n' + \
-            '  <number>' + str(self.num) + '</number>\n' + \
+            '  <number>' + unicode(self.num) + '</number>\n' + \
             (self.page_header.xml if self.page_header != None else '') + \
             self.body.xml + \
             (self.page_footer.xml if self.page_footer != None else '') + \
@@ -1174,10 +1174,10 @@ class Report(object):
             '      <size>' + (self.paper_size or '') + '</size>\n' + \
             '      <orientation>' + (self.paper_orientation or '') + '</orientation>\n' + \
             '      <margin>\n' + \
-            '        <left>' + str(self.margin_left or 0) + '</left>\n' + \
-            '        <right>' + str(self.margin_right or 0) + '</right>\n' + \
-            '        <top>' + str(self.margin_top or 0) + '</top>\n' + \
-            '        <bottom>' + str(self.margin_bottom or 0) + '</bottom>\n' + \
+            '        <left>' + unicode(self.margin_left or 0) + '</left>\n' + \
+            '        <right>' + unicode(self.margin_right or 0) + '</right>\n' + \
+            '        <top>' + unicode(self.margin_top or 0) + '</top>\n' + \
+            '        <bottom>' + unicode(self.margin_bottom or 0) + '</bottom>\n' + \
             '      </margin>\n' + \
             '    </paper>\n' + \
             ('<switch_between_pages/>\n' if self.switch_between_pages else '') + \

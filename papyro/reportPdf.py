@@ -178,10 +178,10 @@ class ReportPdf(ReportBase):
         first_page = True
         
         # pdf properties
-        self.canvas.setTitle(str(self.report.name))
-        self.canvas.setAuthor(str(self.report.author))
-        self.canvas.setSubject(str(self.report.subject))
-        self.canvas.setKeywords(str(self.report.keywords))
+        self.canvas.setTitle(unicode(self.report.name))
+        self.canvas.setAuthor(unicode(self.report.author))
+        self.canvas.setSubject(unicode(self.report.subject))
+        self.canvas.setKeywords(unicode(self.report.keywords))
         
         # title
         self.writeReportTitle(self.report.title)
@@ -208,7 +208,7 @@ class ReportPdf(ReportBase):
     def writeReporPage(self, page):
         """Writes a page (reports.Page) of the report"""
                 
-        if self.debug: print 'ReportPage:', str(page)
+        if self.debug: print 'ReportPage:', unicode(page)
             
         # body
         self.writeBody(page.body, 0)
@@ -329,7 +329,7 @@ class ReportPdf(ReportBase):
             title = self.apply_parameters(title)
             title = self.compile_text(title)
             
-            if isinstance(title, unicode): title = str(title)
+            if isinstance(title, unicode): title = unicode(title)
             
             key = outline.key
             

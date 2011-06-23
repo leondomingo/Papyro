@@ -53,7 +53,7 @@ class ReportPlainText(ReportBase):
     
     def writeReporPage(self, page):
         
-        if self.debug: print 'ReportPage:', str(page)
+        if self.debug: print 'ReportPage:', unicode(page)
         
 #        # page_header
 #        if page.page_header != None:
