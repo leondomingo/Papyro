@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from libpy.conexion import Conexion
-from reports import Report
-from reportPdf import ReportPdf
 import cStringIO
+from neptuno.conexion import Conexion
+from papyro.reports import Report
+from papyro.reportPdf import ReportPdf
 #from lxml import etree
 #from reportPlainText import ReportPlainText
 #import os.path
 #from libpy.implementation.enviaremail import enviar_email
 
-conector = Conexion()
+config = dict(host='localhost', db='lanser-sapns', 
+              user='postgres', password='5390post')
+
+conector = Conexion(config=config)
 
 #report_path = os.path.join(conector.datosconexion.getVariable('ruta_informes'), 
 #                           'MailResumenMensual/ResumenMensualEnglish.xml')
@@ -35,7 +38,7 @@ informe = Report(reportfile='./report1/report1.xml')
 
 #    print informe.xml
 
-pdf = ReportPdf(informe, conector)
+pdf = ReportPdf(informe, conector.session)
 # './report1.pdf'
 
 f_pdf = cStringIO.StringIO()

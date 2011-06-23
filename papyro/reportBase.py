@@ -2,16 +2,16 @@
 
 import os.path
 import sys
-from datetime import datetime
+import datetime as dt
 import reports
 from reportlab.lib.units import mm
 
 class ReportBase(object):
     """Base class for report generators (ReportPpf = PDF, ReportPlainText = Text, etc)"""
     
-    def __init__(self, report, conector):
+    def __init__(self, report, session):
         self.report = report
-        self.conector = conector
+        self.session = session
         self.debug = False
         self.page_no = 0
         self.cur_item = None
@@ -25,7 +25,7 @@ class ReportBase(object):
             CODE = __import__(os.path.splitext(sc.file)[0], globals(), locals())
             
     def get_date(self, fmt):
-        return datetime.now().strftime(fmt)        
+        return dt.datetime.now().strftime(fmt)        
                     
     def apply_constants(self, text):
         """Looks for constants ocurrences in 'text' and returns the same text
@@ -35,10 +35,10 @@ class ReportBase(object):
         text = text.replace('#PAGE_NO#', str(self.page_no))
         
         # DATE
-        text = text.replace('#DATE#', datetime.now().strftime('%d/%m/%Y'))
+        text = text.replace('#DATE#', dt.datetime.now().strftime('%d/%m/%Y'))
         
         # TIME
-        text = text.replace('#TIME#', datetime.now().strftime('%H:%M:%S'))
+        text = text.replace('#TIME#', dt.datetime.now().strftime('%H:%M:%S'))
         
         # CR
         text = text.replace('#CR#', '\n')

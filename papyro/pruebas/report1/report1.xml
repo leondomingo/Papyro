@@ -258,8 +258,8 @@
                         <level/>
                     </outline>
                     <header>
-                        <code>CODE.sum_valor('cursos', 1)</code>
-                        <code>CODE.set_valor('grupos', 0)</code>
+                        <code><![CDATA[CODE.sum_valor('cursos', 1)]]></code>
+                        <code><![CDATA[CODE.set_valor('grupos', 0)]]></code>
                         <line>
                             <id/>
                             <x1>0</x1>
@@ -269,7 +269,7 @@
                         </line>
                         <text>
                             <id>111</id>
-                            <value>{{CODE.get_valor('cursos')}} {{"#CURSOS_NOMBRE#".strip().lower()}} (#CLIENTES_NOMBRE#)</value>
+                            <value><![CDATA[{{CODE.get_valor('cursos')}} {{"#CURSOS_NOMBRE#".strip().lower()}} (#CLIENTES_NOMBRE#)]]></value>
                             <position>
                                 <left>5</left>
                                 <top>2</top>
@@ -303,7 +303,7 @@
                         <code>CODE.lista_dias = []</code>
                         <text>
                             <id/>
-                            <value>El cuadrado de {{CODE.get_valor('cursos')}} es {{CODE.get_valor('cursos') ** 2}}____{{CODE.get_valor('cursos')}}.{{CODE.get_valor('grupos')}} #GRUPOS_NOMBRE# (id=#GRUPOS_ID#)</value>
+                            <value><![CDATA[El cuadrado de {{CODE.get_valor('cursos')}} es {{CODE.get_valor('cursos') ** 2}}____{{CODE.get_valor('cursos')}}.{{CODE.get_valor('grupos')}} #GRUPOS_NOMBRE# (id=#GRUPOS_ID#)]]></value>
                             <position>
                                 <left>15</left>
                                 <top>2</top>
@@ -321,7 +321,7 @@
                         </text>
                         <text>
                             <id/>
-                            <value>{{'1º, 2º ó 3º' if CODE.get_valor('grupos') in [1, 2, 3] else '4º en adelante'}}  #GRUPOS_FECHAINICIO# - #GRUPOS_FECHAFIN#</value>
+                            <value><![CDATA[{{'1º, 2º ó 3º' if CODE.get_valor('grupos') in [1, 2, 3] else '4º en adelante'}}  #GRUPOS_FECHAINICIO# - #GRUPOS_FECHAFIN#]]></value>
                             <position>
                                 <left>15</left>
                                 <top>5</top>
@@ -342,10 +342,10 @@
                 <group_footer>
                     <id>gf_grupos</id>
                     <body>
-                        <print_if>CODE.get_valor('alumnos') &gt; 0</print_if>                        
+                        <print_if><![CDATA[CODE.get_valor('alumnos') > 0]]></print_if>                        
                         <text>
                             <id/>
-                            <value>Nº de alumnos = {{CODE.get_valor('alumnos')}} (footer de grupos) {{'%2.2f' % self.cur_y}}</value>
+                            <value><![CDATA[Nº de alumnos = {{CODE.get_valor('alumnos')}} (footer de grupos) {{'%2.2f' % self.cur_y}}]]></value>
                             <position>
                                 <left>18</left>
                                 <top>0</top>
@@ -368,7 +368,7 @@
                     <body>
                         <text>
                             <id/>
-                            <value>Nº de grupos = {{CODE.get_valor('grupos')}} (footer de cursos)</value>
+                            <value><![CDATA[Nº de grupos = {{CODE.get_valor('grupos')}} (footer de cursos)]]></value>
                             <position>
                                 <left>8</left>
                                 <top>5</top>
@@ -387,7 +387,7 @@
                     </body>
                 </group_footer>
                 <outline>
-                    <title>Aquí un outline de un master (#GRUPOS_NOMBRE#)</title>
+                    <title><![CDATA[Aquí un outline de un master (#GRUPOS_NOMBRE#)]]></title>
                     <key>M_G_#GRUPOS_ID#</key>
                     <level>1</level>
                 </outline>               
@@ -500,7 +500,7 @@
                         </text>
                         <text>
                             <id>txt_alumno</id>
-                            <value><![CDATA[{{'(desde #AEG_FECHAINICIO# hasta #AEG_FECHAFIN#)'.upper()}} {{CODE.get_date('%d/%m')}}]]></value>
+                            <value><![CDATA[{{dt.datetime.now().strftime('%Y.%m.%d')}} {{'(desde #AEG_FECHAINICIO# hasta #AEG_FECHAFIN#)'.upper()}} {{CODE.get_date('%d/%m')}}]]></value>
                             <size>
                                 <height>3</height>
                                 <width>0</width>
@@ -540,7 +540,7 @@
                     <body>
                         <text>
                             <id/>
-                            <value><![CDATA[{{CODE.draw_calendar(20, self.cur_y / mm - 5, 8, 5, self, first_day=datetime(#YEAR#, #MONTH#, 1), id_grupo=#GRUPOS_ID#)}}]]></value>
+                            <value><![CDATA[{{CODE.draw_calendar(20, self.cur_y / mm - 5, 8, 5, self, first_day=dt.date(#YEAR#, #MONTH#, 1), id_grupo=#GRUPOS_ID#)}}]]></value>
                             <position>
                                 <left>0</left>
                                 <top>0</top>

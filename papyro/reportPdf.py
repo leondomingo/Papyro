@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os.path
 from reportlab.pdfgen import canvas
 import reportlab.lib.pagesizes as pagesizes
 from reportlab.lib.units import mm
@@ -7,13 +8,12 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportBase import ReportBase
 import reports
-import os.path
 
 class ReportPdf(ReportBase):
     """Report generator in PDF files"""
     
-    def __init__(self, report, conector):
-        ReportBase.__init__(self, report, conector)
+    def __init__(self, report, session):
+        ReportBase.__init__(self, report, session)
         self.canvas = None
         self.wd0 = 0
         self.hg0 = 0
@@ -385,8 +385,9 @@ class ReportPdf(ReportBase):
             except ValueError:
                 footers.append(None)
         
-        data = self.conector.conexion.execute(sql).fetchall()
-        for mdata, n in zip(data, xrange(len(data))):
+        data = self.session.execute(sql).fetchall()
+        #for n, mdata in zip(data, xrange(len(data))):
+        for n, mdata in enumerate(data):
             for group_h, i in zip(master.group_headers, xrange(len(master.group_headers))):
                 if mdata[group_h.field] != values[i]:
                     if not first_gh and group_h.options.print_on_new_page:
@@ -426,7 +427,8 @@ class ReportPdf(ReportBase):
                 else:
                     min_y = y
 
-            for group_h, i in reversed(zip(master.group_headers, xrange(len(master.group_headers)))):
+            #for group_h, i in reversed(zip(master.group_headers, xrange(len(master.group_headers)))):
+            for i, group_h in enumerate(reversed(master.group_headers)):
                 # exists next record?
                 if len(data) > (n + 1):
                     next_value = data[n + 1][group_h.field]
@@ -478,7 +480,7 @@ class ReportPdf(ReportBase):
                 
         sql %= detail_dict
         
-        data = self.conector.conexion.execute(sql)
+        data = self.session.execute(sql)
 
         min_y = y
         new_page = False

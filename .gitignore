@@ -2,4 +2,7 @@
 .project
 .pydevproject
 .settings/
-config.py
+*~
+Papyro.egg-info/
+dist/
+build/

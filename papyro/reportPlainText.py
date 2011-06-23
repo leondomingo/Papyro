@@ -124,7 +124,7 @@ class ReportPlainText(ReportBase):
                     
             footers.append(footer)
         
-        data = self.conector.conexion.execute(sql).fetchall()
+        data = self.session.execute(sql)
         n = 0           
         for mdata in data:
             for i in xrange(len(master.group_headers)):
@@ -172,7 +172,7 @@ class ReportPlainText(ReportBase):
         
         if self.debug: print sql
         
-        data = self.conector.conexion.execute(sql)
+        data = self.session.execute(sql)
         
         # detail:header
         if detail.header != None:
@@ -227,7 +227,7 @@ class ReportPlainText(ReportBase):
                 parameters.append((subparam[0], param[1], param[2]))
                 #print subparam[0], param[1], param[2]
             
-            subinforme = ReportPlainText(informe, self.conector)
+            subinforme = ReportPlainText(informe, self.session)
             return subinforme.writeReport(params=parameters, debug=self.debug)
         finally:
             f_xml.close()                            
