@@ -216,6 +216,9 @@
             </master>
             <master>
                 <id>master_1</id>
+                <options>
+                    <print_on_new_page/>
+                </options>
                 <table>
                     <fields>
                         <field>CURSOS_ID</field>
@@ -250,7 +253,7 @@
                     <field>CURSOS_NOMBRE</field>
                     <footer_id>gf_cursos</footer_id>
                     <options>
-                        <print_on_new_page/>
+                        <!--<print_on_new_page/>-->
                     </options>
                     <outline>
                         <title>#CURSOS_NOMBRE#</title>

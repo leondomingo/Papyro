@@ -445,11 +445,30 @@ class Detail(NotPrintableItem):
         self.body.xml = etree.tostring(detail.find('body'))
     
     xml = property(getxml, setxml)
+
+class MasterOptions(object):
+    def __init__(self):
+        self.print_on_new_page = False
+        
+    def getxml(self):
+        valor = \
+            '<options>\n' + \
+            ('  <print_on_new_page/>\n' if self.print_on_new_page else '') + \
+            '</options>\n'
+                    
+        return valor
+    
+    def setxml(self, valor):
+        ms_options = etree.fromstring(valor)
+        self.print_on_new_page = ms_options.find('print_on_new_page') != None
+        
+    xml = property(getxml, setxml)            
     
 class Master(NotPrintableItem):
     def __init__(self, id=None):
         NotPrintableItem.__init__(self)
         self.id = id or ''
+        self.options = MasterOptions()
         self.table = Table()
         self.outline = None
         self.print_on_new_page = False
@@ -482,6 +501,7 @@ class Master(NotPrintableItem):
     def getxml(self):
         valor = \
             '<master>\n' + \
+            self.options.xml() + \
             self.table.xml + \
             self.getxmlgroupheaders() + \
             self.getxmlgroupfooters() + \
@@ -497,6 +517,11 @@ class Master(NotPrintableItem):
         
         self.id = master.find('id').text or ''
         self.table.xml = etree.tostring(master.find('table'))
+        
+        # options
+        options = master.find('options')
+        if options != None:
+            self.options.xml = etree.tostring(master.find('options'))
         
         # group headers
         self.group_headers = []
@@ -1106,9 +1131,9 @@ class ReportTitle(NotPrintableItem):
 class Report(object):    
     def __init__(self, name=None, reportfile=None, xml=None):
         self.name = name or ''
-        self.author = None
-        self.subject = None
-        self.keywords = None
+        self.author = ''
+        self.subject = ''
+        self.keywords = ''
         self.filename = reportfile        
         self.pages = [] # lista de "ReportPage"
         self.title = ReportTitle(None)        

@@ -329,7 +329,7 @@ class ReportPdf(ReportBase):
             title = self.apply_parameters(title)
             title = self.compile_text(title)
             
-            if isinstance(title, unicode): title = unicode(title)
+            if isinstance(title, unicode): title = title.encode('utf-8')
             
             key = outline.key
             
@@ -337,7 +337,9 @@ class ReportPdf(ReportBase):
             key = self.apply_data(title, mdata)
             key = self.apply_data(title, ddata)
             key = self.apply_parameters(key)
-            key = self.compile_text(key)            
+            key = self.compile_text(key)
+            
+            if isinstance(key, unicode): key = key.encode('utf-8')            
             
             level = int(outline.level or 0)
             self.canvas.bookmarkPage(key)
@@ -386,9 +388,9 @@ class ReportPdf(ReportBase):
                 footers.append(None)
         
         data = self.session.execute(sql).fetchall()
-        #for n, mdata in zip(data, xrange(len(data))):
         for n, mdata in enumerate(data):
-            for group_h, i in zip(master.group_headers, xrange(len(master.group_headers))):
+            #for group_h, i in zip(master.group_headers, xrange(len(master.group_headers))):
+            for i, group_h in enumerate(master.group_headers):
                 if mdata[group_h.field] != values[i]:
                     if not first_gh and group_h.options.print_on_new_page:
                         self.newPage(save=True)
@@ -412,6 +414,12 @@ class ReportPdf(ReportBase):
             self.writeOutline(master.outline, mdata)
             
             # master:body
+            
+            if master.options.print_on_new_page:
+                self.newPage(save=True)
+                y = 0
+                min_y = y
+            
             y, new_page = self.writeBody(master.body, y, mdata)
             if not new_page:
                 if y < min_y: min_y = y
