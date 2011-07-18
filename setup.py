@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='paPyro',
-      version='1.0.5',
+      version='1.0.6',
       author='León Domingo',
       author_email='leon.domingo@ender.es',
       description=('A PDF report generator written in Python'),
@@ -22,7 +22,7 @@ setup(name='paPyro',
       install_requires=[
         'Neptuno2',
         'ReportLab>=2.5',
-        'SQLAlchemy==0.6.7',
-        'lxml==2.2.7',
+        'SQLAlchemy==0.6.8',
+        'lxml',
       ],
      )
